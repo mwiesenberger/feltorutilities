@@ -125,7 +125,7 @@ inputfile = {
     }
 }
 
-m = simplesim.Manager( directory="data", executable="submit_job.sh", filetype="nc")
+m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 #
 m.create( inputfile, 0, error="display")
 
