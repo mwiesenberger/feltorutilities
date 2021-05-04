@@ -127,7 +127,7 @@ inputfile = {
 
 m = simplesim.Manager( directory="data", executable="submit_job.sh", filetype="nc")
 #
-m.create( inputfile, 0)
+m.create( inputfile, 0, error="display")
 
 #test = simplesim.Repeater( "./feltor.sh", "test.json", "test.nc")
 #testfile = inputfile
