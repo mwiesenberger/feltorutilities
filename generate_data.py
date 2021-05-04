@@ -41,7 +41,7 @@ inputfile = {
             "boundary" : 0.25,
             "alpha" : 0.15,
             "penalization" : 1.0,
-            "penalize-rhs" : False
+            "penalize-rhs" : True
         },
         "bc" :
         {
@@ -52,7 +52,7 @@ inputfile = {
         }
     },
     "flags" : [],
-    "init" : { "type" : "zero" }
+    "init" : { "type" : "zero" },
     "source" :
     {
         "type" : "influx",
@@ -101,7 +101,7 @@ inputfile = {
     },
     "FCI":
     {
-        "refine" : [2,2]
+        "refine" : [2,2],
         "rk4eps" : 1e-6,
         "periodify" : True,
         "bc" : "along_field"
@@ -120,12 +120,25 @@ inputfile = {
         "type" : "netcdf",
         "inner_loop" : 5,
         "itstp" : 500,
-        "maxout": 50
+        "maxout": 50,
         "compression": [2,2]
     }
 }
 
 m = simplesim.Manager( directory="data", executable="submit_job.sh", filetype="nc")
-
+#
 m.create( inputfile, 0)
+
+#test = simplesim.Repeater( "./feltor.sh", "test.json", "test.nc")
+#testfile = inputfile
+#testfile["grid"]["Nx"] = 48
+#testfile["grid"]["Ny"] = 88
+#testfile["flags"] = ["symmetric"]
+#
+#testfile["output"]["type"] = "glfw"
+#testfile["output"]["inner_loop"] = 2
+#testfile["output"]["itstp"] = 1
+#testfile["output"]["window"] = {"rows":6, "reduction" : 4, "width" :200, "height" : 400}
+#test.run( testfile)
+
 
