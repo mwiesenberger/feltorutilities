@@ -3,29 +3,30 @@ import scipy.constants as cte
 import scipy.optimize as opt
 
 tasks = {}
+# design copied from stackoverflow
 task = lambda f: tasks.setdefault( f.__name__, f)
 
 #WE PASS **kwargs TO ALL FUNCTIONS SO THAT WE CAN CALL ALL WITH DICTIONARIES
 
-# identities
-@task
-def T_e( T_e, **kwargs) :
-    return T_e
-@task
-def T_i( T_i, **kwargs) :
-    return T_i
-@task
-def m_i( m_i, **kwargs) :
-    return m_i
-@task
-def R( R, **kwargs) :
-    return R
-@task
-def n_0( n_0, **kwargs) :
-    return n_0
-@task
-def B_0( B_0, **kwargs) :
-    return B_0
+# identities (not sure we need them any more)
+#@task
+#def T_e( T_e, **kwargs) :
+#    return T_e
+#@task
+#def T_i( T_i, **kwargs) :
+#    return T_i
+#@task
+#def m_i( m_i, **kwargs) :
+#    return m_i
+#@task
+#def R( R, **kwargs) :
+#    return R
+#@task
+#def n_0( n_0, **kwargs) :
+#    return n_0
+#@task
+#def B_0( B_0, **kwargs) :
+#    return B_0
 
 
 # scale variables
@@ -66,7 +67,7 @@ def mu ( m_i, **kwargs) : # proton mass, deuteron mass, triton mass
     return -cte.m_e/ m_i
 
 @task
-def tau_i ( T_e, T_i, **kwargs) :
+def tau ( T_e, T_i, **kwargs) :
     """ ion to electron temperature ratio"""
     return T_i / T_e
 
@@ -107,13 +108,15 @@ def viscosity_i( n_0, T_e, B_0, m_i, **kwargs) :
 
 # Miscellaneous ( inverseaspectratio, q)
 @task
-def minor_radius( inverseaspectratio, R, **kwargs) :
-    """as a function of inverse aspect ratio and R"""
-    return inverseaspectratio*R
+def inverseaspectratio( a, R, **kwargs) :
+    return a/R
+
 @task
-def minor_radius_rhos( inverseaspectratio, B_0, m_i, T_e, R, **kwargs) :
-    """as a function of inverse aspect ratio and R"""
-    return inverseaspectratio*R_0(B_0, m_i, T_e, R)
+def aspectratio( a, R, **kwargs) :
+    return R/a
+@task
+def a_0( B_0, m_i, T_e, a, **kwargs) :
+    return R_0(B_0, m_i, T_e, a)
 
 @task
 def lparallel( q, R, **kwags):
@@ -133,8 +136,7 @@ def Myra (n_0, T_e, B_0, m_i, q, R, **kwargs):
 @task
 def Knudsen (m_i, n_0, T_e, B_0, q, R, **kwargs):
     """ 0.51 sqrt(mu)/Myra"""
-    return 0.51*sqrt( abs( mu(m_i)))/Myra( resistivity(n_0, T_e, B_0),
-            lparallel_rhos(q, B_0, m_i, T_e, R))
+    return 0.51*np.sqrt( abs( mu(m_i)))/ Myra (n_0, T_e, B_0, m_i, q, R)
 
 @task
 def pref(m_i, n_0, T_e, B_0, R, **kwargs):
@@ -166,24 +168,15 @@ def GBS_resistivity(n_0, T_e, B_0, m_i, R, **kwargs):
     return resistivity(n_0, T_e, B_0)*R_0(B_0, m_i, T_e, R)
 
 @task
-def CFL_diff( n_0, B_0, m_i, T_e, R, inverseaspectratio, scaleR, Nz, **kwargs):
+def CFL_diff( n_0, B_0, m_i, T_e, R, a, scaleR, Nz, **kwargs):
     """ CFL condition due to parallel diffusion """
     return (2.*np.pi/Nz*R_0(B_0, m_i, T_e, R)*(
-        1-scale_R*inverseaspectratio))**2/viscosity_e( n_0, T_e, B_0)
+        1-scaleR*a/R))**2/viscosity_e( n_0, T_e, B_0)
 
 
 proton_mass   = cte.physical_constants["proton mass"][0]
 deuteron_mass = cte.physical_constants["deuteron mass"][0]
 triton_mass   = cte.physical_constants["triton mass"][0]
-
-def physical2numerical( physical, numerical):
-    """Compute numerical parameters from physical parameters"""
-    numerical["mu"] = mu( physical["m_i"])
-    numerical["tau_i"] = tau_i( physical["T_e"], physical["T_i"])
-    numerical["beta"] = beta( physical["n_0"], physical["T_e"], physical["B_0"])
-    numerical["resistivity"] = resistivity( physical["n_0"], physical["T_e"], physical["B_0"])
-    numerical["R_0"] = R_0( physical["B_0"], physical["m_i"], physical["T_e"], physical["R"])
-    numerical["epsilon_D"] = epsilon_D( physical["n_0"], physical["B_0"], physical["m_i"])
 
 def numerical2physical( numerical, physical):
     """Invert numerical parameters to physical parameters
@@ -192,16 +185,19 @@ def numerical2physical( numerical, physical):
 
     """
 
-    physical["m_i"] = -cte.m_e/numerical["mu"]
+    if "mu" in numerical :
+        physical["m_i"] = -cte.m_e/numerical["mu"]
+    else :
+        numerical["mu"] = -cte.m_e/physical["m_i"]
 
     if ( ("epsilon_D" in numerical) and (numerical["epsilon_D"] != 0) ) :
         if (not("beta" in numerical) or (numerical["beta"] == 0)):
             raise ValueError("beta must be present if epsilon_D is")
         def to_invert0( x,
-                       for_e_D,for_mu, for_tau_i, for_beta, for_eta, for_R_0) :
+                       for_e_D,for_mu, for_tau, for_beta, for_eta, for_R_0) :
             T_e, T_i, n_0, B_0, R = x
             m_i = -cte.m_e/for_mu
-            return (tau_i(T_e, T_i) - for_tau_i,
+            return (tau(T_e, T_i) - for_tau,
                 (beta( n_0, T_e, B_0) - for_beta)/for_beta,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (epsilon_D( n_0, B_0, m_i) - for_e_D)/for_e_D,
@@ -210,23 +206,23 @@ def numerical2physical( numerical, physical):
         print( "Invert for given numerical parameters")
         physical["T_e"], physical["T_i"], physical["n_0"], physical["B_0"], physical["R"]\
         = opt.fsolve( to_invert0, [1,1,1,1,1],args=(
-            numerical["epsilon_D"],numerical["mu"],numerical["tau_i"],
+            numerical["epsilon_D"],numerical["mu"],numerical["tau"],
             numerical["beta"],numerical["resistivity"],numerical["R_0"]))
 
     elif (("beta" in numerical) and (numerical["beta"] != 0) ):
-        print( "Invert for given R_0")
+        print( "Invert for given R")
         def to_invert1( x, R,
-              for_mu, for_tau_i, for_beta, for_eta, for_R_0) :
+              for_mu, for_tau, for_beta, for_eta, for_R_0) :
             T_e, T_i, n_0, B_0 = x
             m_i = -cte.m_e/for_mu
-            return (tau_i(T_e, T_i) - for_tau_i,
+            return (tau(T_e, T_i) - for_tau,
                 (beta( n_0, T_e, B_0) - for_beta)/for_beta,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
         physical["T_e"], physical["T_i"], physical["n_0"], physical["B_0"]\
         = opt.fsolve( to_invert1, [1,1,1,1],args=(
-            physical["R"],numerical["mu"],numerical["tau_i"],
+            physical["R"],numerical["mu"],numerical["tau"],
             numerical["beta"],numerical["resistivity"],numerical["R_0"]))
         numerical["epsilon_D"] = epsilon_D(physical["n_0"],
                                         physical["B_0"],
@@ -237,17 +233,17 @@ def numerical2physical( numerical, physical):
             (not "B_0" in physical) or (physical["B_0"] == 0)):
             raise ValueError ( "B_0 and R_0 must be present in physical and be different from zero")
         def to_invert2( x, B_0, R,
-                  for_mu, for_tau_i, for_eta, for_R_0) :
+                  for_mu, for_tau, for_eta, for_R_0) :
             T_e, T_i, n_0 = x
             m_i = -cte.m_e/for_mu
-            return (tau_i(T_e, T_i) - for_tau_i,
+            return (tau(T_e, T_i) - for_tau,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
         physical["T_e"], physical["T_i"], physical["n_0"]\
         = opt.fsolve( to_invert2, [1,1,1],args=(
             physical["B_0"],physical["R"],numerical["mu"],
-            numerical["tau_i"],numerical["resistivity"],numerical["R_0"]))
+            numerical["tau"],numerical["resistivity"],numerical["R_0"]))
         numerical["beta"] = beta( physical["n_0"],
                                     physical["T_e"],
                                     physical["B_0"])
@@ -255,11 +251,22 @@ def numerical2physical( numerical, physical):
                                         physical["B_0"],
                                         physical["m_i"])
 
+def quantities() :
+    """ A List of all available quantities """
+    return tasks.keys()
+
+def parameters2quantity( parameters, quantity) :
+    if quantity in parameters.keys() :
+        return  parameters[quantity]
+    else :
+        return tasks[ quantity]( **parameters)
+
+
 def parameters2quantities( parameters, quantities) :
     """ Return a list of values corresponding to quantities """
     myList = []
     for quantity in quantities:
-        myList.append(tasks[ quantity]( **parameters))
+        myList.append( parameters2quantity( parameters, quantity))
     return myList
 
 def load_calibration_default():

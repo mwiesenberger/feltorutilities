@@ -15,12 +15,10 @@ print(f"Hello R_0\t\t{R_0:.2f}")
 print(f"Hello omega^(-1)\t{omega_0_inv:.2e}")
 
 physical = {"R" : 0.6}
-numerical = {"mu" : -2.72e-4,"tau_i":1,"beta":4.11e-4,"resistivity" : 3.81e-5,"R_0" : 91.94}
+numerical = {"mu" : -2.72e-4,"tau":1,"beta":4.11e-4,"resistivity" : 3.81e-5,"R_0" : 91.94}
 fp.numerical2physical( numerical, physical)
 
 print( physical)
-print( numerical)
-fp.physical2numerical( physical, numerical)
 print( numerical)
 numerical["epsilon_D"] = 0
 numerical["beta"] = 0
@@ -30,6 +28,10 @@ print( physical, numerical)
 fp.numerical2physical( numerical, physical)
 print( physical, numerical)
 
-table_list = [*physical.keys(), *numerical.keys(), "rho_s", "omega_0_inv", "c_s"]
+table_list = fp.quantities()
+physical["a"] = 0.15
+physical["q"] = 2
+physical["scaleR"] = 1.2
+physical["Nz"] = 32
 print( table_list)
 print( fp.parameters2quantities( physical, table_list ))
