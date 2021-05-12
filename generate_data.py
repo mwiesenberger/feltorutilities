@@ -33,7 +33,7 @@ inputfile = {
             "alpha" : [0.1,0.05],
             "penalization" : 1.0,
             "modify-B" : True,
-            "penalize-rhs" : False
+            "penalize-rhs" : True
         },
         "sheath" :
         {

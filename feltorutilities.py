@@ -387,8 +387,8 @@ def load_calibration_default():
             "sheath":
             {
                 "type": "bohm",
-                "boundary": 0.30,
-                "alpha": 0.2,
+                "boundary": 0.125, # 4/32
+                "alpha": 0.0625, # 2/32
                 "penalization" : 1e+0,
                 "penalize-rhs" : False
             },
