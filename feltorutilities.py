@@ -278,11 +278,12 @@ def load_calibration_default():
             "Nx" : 48,
             "Ny" : 96,
             "Nz" : 8,
-            "scaleR" : [1.25,1.2],
-            "scaleZ" : [2.2, 2.0]
+            "scaleR" : [1.45,1.25],
+            "scaleZ" : [2.6, 2.25]
         },
         "timestepper":
         {
+            "type"  : "multistep",
             "tableau": "TVB-3-3",
             "dt" : 1e-2
         },
@@ -327,51 +328,65 @@ def load_calibration_default():
         },
         "source":
         {
+            "minne" : 0.2,
+            "minrate" : 1.0,
+            "minalpha" : 0.1,
             "type" : "influx",
-            "rate" : 2e-3,
-            "ntilde": {
-                "type" : "turbulence",
-                "amplitude"  : 0.1,
-                "rk4eps" : 1e-6,
-                "refine" : [5,5],
-                "revolutions" : 1,
-                "sigma_z" : 0.5
+            "rate" : 1e-4,
+            "ntilde":
+            {
+                "type" : "zero",
             },
             "profile":
             {
                 "type" : "aligned",
-                "amplitude" : 1.0
+                "npeak" : 1.0,
+                "nsep" : 0.0
             },
             "damping":
             {
-                "type": "aligned",
+                "type": "alignedX",
                 "alpha" : 0.2,
-                "boundary" : 0.55
+                "boundary" : 0.55,
+                "background" : 0.0
             }
         },
         "init":
         {
-            "type" : "ne",
-            "potential" : "zero",
-            "ntilde": {
-                "type" : "turbulence",
-                "amplitude"  : 0.1,
-                "rk4eps" : 1e-6,
-                "refine" : [5,5],
-                "revolutions" : 1,
-                "sigma_z" : 0.5
-            },
-            "profile":
+            "type" : "fields",
+            "density" :
             {
-                "type" : "aligned",
-                "amplitude" : 1.0
+                "type" : "ne",
+                "ntilde":
+                {
+                    "type" : "turbulence",
+                    "amplitude"  : 1e-4,
+                    "rk4eps" : 1e-6,
+                    "refine" : [5,5],
+                    "revolutions" : 1,
+                    "sigma_z" : 0.5
+                },
+                "profile":
+                {
+                    "type" : "aligned",
+                    "npeak" : 4.0,
+                    "nsep" : 1.0
+                },
+                "damping":
+                {
+                    "type": "alignedPFR",
+                    "alpha" : [0.1,0.04],
+                    "boundary" : [1.14,0.96],
+                    "background" : 0.2
+                }
             },
-            "damping":
+            "potential" : {"type" : "zero_pol"},
+            "velocity" :
             {
-                "type": "aligned",
-                "alpha" : 0.2,
-                "boundary" : 1.0
-            }
+                "type" : "ui",
+                "profile" : "linear_cs"
+            },
+            "aparallel" : {"type" : "zero"}
         },
         "boundary":
         {
@@ -382,19 +397,23 @@ def load_calibration_default():
                 "alpha": [0.10,0.10],
                 "modify-B" : True,
                 "penalization" : 1e+0,
-                "penalize-rhs" : False
+                "penalize-rhs" : False,
+                "nwall" : 0.2,
+                "uwall" : 0.0
             },
             "sheath":
             {
                 "type": "bohm",
-                "boundary": 0.125, # 4/32
+                "boundary": 0.09375, # 3/32
                 "alpha": 0.0625, # 2/32
                 "penalization" : 1e+0,
-                "penalize-rhs" : False
+                "penalize-rhs" : False,
+                "coordinate" : "s",
+                "max_angle" : 4
             },
             "bc" :
             {
-                "density" : ["DIR", "DIR"],
+                "density" : ["NEU", "NEU"],
                 "velocity": ["NEU", "NEU"],
                 "potential":["DIR", "DIR"],
                 "aparallel":["NEU", "NEU"]

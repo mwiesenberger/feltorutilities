@@ -19,29 +19,33 @@ inputfile = {
     {
         "n" : 3,
         "Nx" : 192, # 12*16 (max is about 312 on 1 GPU)
-        "Ny" : 352, # 22*16 (max is about 576 on 1 GPU)
+        "Ny" : 336, # 21*16 (max is about 576 on 1 GPU)
         "Nz" : 32,
         "scaleR" : [1.45,1.25], # 2.7
-        "scaleZ" : [2.6,2.25]   # 4.85
+        "scaleZ" : [2.4,2.25]   # 4.65
     },
     "boundary" :
     {
         "wall" :
         {
             "type" : "sol_pfr",
-            "boundary" : [1.15, 0.95],
-            "alpha" : [0.1,0.05],
-            "penalization" : 1.0,
+            "boundary" : [1.15, 0.97],
+            "alpha" : [0.10,0.10],
+            "penalization" : 1e-2, # 1 seems to prevent good timestep in adaptive
             "modify-B" : True,
-            "penalize-rhs" : True
+            "penalize-rhs" : True,
+            "nwall" : 0.2,
+            "uwall" : 0.0
         },
         "sheath" :
         {
             "type" : "insulating",
-            "boundary" : 0.25,
-            "alpha" : 0.15,
-            "penalization" : 1.0,
-            "penalize-rhs" : True
+            "boundary" : 3/16, # large boundary seems to stabilize
+            "alpha" : 3/16-1/32, # should also be large
+            "penalization" : 5.0, # larger runs better
+            "penalize-rhs" : True,
+            "coordinate" : "s",
+            "max_angle" : 4
         },
         "bc" :
         {
@@ -52,36 +56,71 @@ inputfile = {
         }
     },
     "flags" : [],
-    "init" : { "type" : "zero" },
+    "init" :
+    {
+        "type" : "fields",
+        "density" :
+        {
+            "type" : "ne",
+            "ntilde":
+            {
+                "type" : "turbulence",
+                "amplitude" : 1e-4,
+                "rk4eps" : 1e-6,
+                "refine" : [5,5],
+                "revolutions" : 1,
+                "sigma_z" : 0.5
+            },
+            "profile":
+            {
+                "type" : "aligned",
+                "npeak" : 8.5,
+                "nsep" : 1.0
+            },
+            "damping":
+            {
+                "type" : "alignedPFR",
+                "alpha" : [0.1,0.03],
+                "boundary" : [1.1,0.98],
+                "background" : 0.2
+            }
+        },
+        "potential": { "type" : "zero_pol"},
+        "velocity":
+        {
+            "type" : "ui",
+            "profile" : "linear_cs"
+        },
+        "aparallel": { "type" : "zero"}
+    },
     "source" :
     {
+        "minne" : 0.2,  # minne seems to rescue the sol ue instability
+        "minrate" : 1.0, #
+        "minalpha" : 0.05, # smaller seems better
         "type" : "influx",
-        "rate" : 2e-3,
-        "ntilde":
-        {
-            "type" : "turbulence",
-            "amplitude" : 0.01,
-            "rk4eps" : 1e-6,
-            "refine" : [5,5],
-            "revolutions" : 1,
-            "sigma_z" : 0.5
-        },
+        "rate" : 1e-4,
         "profile":
         {
             "type" : "aligned",
-            "amplitude" : 1.0
+            "npeak" : 1.0,
+            "nsep" : 1.0/8.5
         },
+        "ntilde" : {"type" : "zero"},
         "damping":
         {
-            "type" : "aligned",
+            "type" : "alignedX",
             "alpha" : 0.2,
-            "boundary" : 1.0
+            "boundary" : 0.55,
+            "background" : 0.0
         }
     },
     "timestepper":
     {
-        "tableau" : "TVB-3-3",
-        "dt" : 1e-2
+        "type" : "adaptive",
+        "tableau" : "Bogacki-Shampine-4-2-3",
+        "rtol": 1e-5,
+        "atol" : 1e-9
     },
     "regularization" :
     {
@@ -101,38 +140,38 @@ inputfile = {
     },
     "FCI":
     {
-        "refine" : [2,2],
+        "refine" : [5,5],
         "rk4eps" : 1e-6,
-        "periodify" : True,
+        "periodify" : False,
         "bc" : "along_field"
     },
     "physical":
     {
         "mu" : -0.00027244371074816386,
         "tau" : 1.0,
-        "beta" : 5e-5,
-        "resistivity" : 5e-5,
-        "epsilon_D" : 8.291783866749523e-05,
+        "beta" : 1e-4,
+        "resistivity" : 1e-4,
+        "epsilon_D" : 4.1458919332419e-05,
         "viscosity" : "braginskii"
     },
     "output" :
     {
         "type" : "netcdf",
         "inner_loop" : 5,
-        "itstp" : 500,
+        "itstp" : 200,
         "maxout": 50,
         "compression": [2,2]
     }
 }
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
-#
+
 m.create( inputfile, 0, error="display")
 
 #test = simplesim.Repeater( "./feltor.sh", "test.json", "test.nc")
 #testfile = inputfile
 #testfile["grid"]["Nx"] = 48
-#testfile["grid"]["Ny"] = 88
+#testfile["grid"]["Ny"] = 80
 #testfile["flags"] = ["symmetric"]
 #
 #testfile["output"]["type"] = "glfw"
