@@ -292,7 +292,8 @@ def load_calibration_default():
             "order" : 2,
             "direction": "centered",
             "nu_perp_n" : 1e-5,
-            "nu_perp_u" : 1e-5
+            "nu_perp_u" : 1e-5,
+            "nu_parallel_n" : 1e3
         },
         "elliptic":
         {

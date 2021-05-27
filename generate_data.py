@@ -1,3 +1,4 @@
+import json
 import simplesimdb as simplesim
 import feltorutilities as fp
 import magneticfielddb as mag
@@ -128,6 +129,7 @@ inputfile = {
         "direction" : "centered",
         "nu_perp_n" : 2e-5,
         "nu_perp_u" : 2e-5,
+        "nu_parallel_n" : 1e-2*params["R_0"]**2
     },
     "elliptic":
     {
@@ -168,7 +170,6 @@ m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype=
 
 m.create( inputfile, 0, error="display")
 
-#test = simplesim.Repeater( "./feltor.sh", "test.json", "test.nc")
 #testfile = inputfile
 #testfile["grid"]["Nx"] = 48
 #testfile["grid"]["Ny"] = 80
@@ -178,6 +179,8 @@ m.create( inputfile, 0, error="display")
 #testfile["output"]["inner_loop"] = 2
 #testfile["output"]["itstp"] = 1
 #testfile["output"]["window"] = {"rows":6, "reduction" : 4, "width" :200, "height" : 400}
-#test.run( testfile)
+#with open( "test.json", 'w') as f:
+#    inputstring = json.dump( inputfile, f,
+#        sort_keys=True, ensure_ascii=True, indent=4)
 
 
