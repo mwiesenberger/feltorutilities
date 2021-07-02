@@ -129,7 +129,10 @@ inputfile = {
         "direction" : "centered",
         "nu_perp_n" : 2e-5,
         "nu_perp_u" : 2e-5,
-        "nu_parallel_n" : 1e-2*params["R_0"]**2
+    },
+    "advection" :
+    {
+        "slope-limiter": "minmod"
     },
     "elliptic":
     {
@@ -166,21 +169,21 @@ inputfile = {
     }
 }
 
-m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
-
-m.create( inputfile, 0, error="display")
-
-#testfile = inputfile
-#testfile["grid"]["Nx"] = 48
-#testfile["grid"]["Ny"] = 80
-#testfile["flags"] = ["symmetric"]
+#m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 #
-#testfile["output"]["type"] = "glfw"
-#testfile["output"]["inner_loop"] = 2
-#testfile["output"]["itstp"] = 1
-#testfile["output"]["window"] = {"rows":6, "reduction" : 4, "width" :200, "height" : 400}
-#with open( "test.json", 'w') as f:
-#    inputstring = json.dump( inputfile, f,
-#        sort_keys=True, ensure_ascii=True, indent=4)
+#m.create( inputfile, 0, error="display")
+
+testfile = inputfile
+testfile["grid"]["Nx"] = 48
+testfile["grid"]["Ny"] = 80
+testfile["flags"] = ["symmetric"]
+
+testfile["output"]["type"] = "glfw"
+testfile["output"]["inner_loop"] = 2
+testfile["output"]["itstp"] = 1
+testfile["output"]["window"] = {"rows":6, "reduction" : 4, "width" :200, "height" : 400}
+with open( "test.json", 'w') as f:
+    inputstring = json.dump( inputfile, f,
+        sort_keys=True, ensure_ascii=True, indent=4)
 
 

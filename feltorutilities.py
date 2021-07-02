@@ -281,6 +281,10 @@ def load_calibration_default():
             "scaleR" : [1.45,1.25],
             "scaleZ" : [2.6, 2.25]
         },
+        "advection":
+        {
+            "slope-limiter" : "none"
+        },
         "timestepper":
         {
             "type"  : "multistep",
@@ -293,7 +297,6 @@ def load_calibration_default():
             "direction": "centered",
             "nu_perp_n" : 1e-5,
             "nu_perp_u" : 1e-5,
-            "nu_parallel_n" : 1e3
         },
         "elliptic":
         {
