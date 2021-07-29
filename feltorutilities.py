@@ -294,7 +294,7 @@ def load_calibration_default():
         "regularization":
         {
             "order" : 2,
-            "direction": "centered",
+            "direction": "forward",
             "nu_perp_n" : 1e-5,
             "nu_perp_u" : 1e-5,
         },
@@ -309,10 +309,11 @@ def load_calibration_default():
         },
         "FCI":
         {
-            "refine" : [1,1],
+            "refine" : [5,5],
             "rk4eps" : 1e-6,
             "periodify": True,
-            "bc" : "along_field"
+            "bc" : "along_field",
+            "interpolation-method" : "linear"
         },
         "physical":
         {
@@ -366,7 +367,6 @@ def load_calibration_default():
                     "type" : "turbulence",
                     "amplitude"  : 1e-4,
                     "rk4eps" : 1e-6,
-                    "refine" : [5,5],
                     "revolutions" : 1,
                     "sigma_z" : 0.5
                 },

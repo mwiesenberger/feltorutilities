@@ -25,6 +25,10 @@ inputfile = {
         "scaleR" : [1.45,1.25], # 2.7
         "scaleZ" : [2.4,2.25]   # 4.65
     },
+    "advection":
+    {
+        "slope-limiter" : "none"
+    },
     "boundary" :
     {
         "wall" :
@@ -126,13 +130,13 @@ inputfile = {
     "regularization" :
     {
         "order" : 2,
-        "direction" : "centered",
+        "direction" : "forward",
         "nu_perp_n" : 2e-5,
         "nu_perp_u" : 2e-5,
     },
     "advection" :
     {
-        "slope-limiter": "minmod"
+        "slope-limiter": "none"
     },
     "elliptic":
     {
@@ -148,7 +152,8 @@ inputfile = {
         "refine" : [5,5],
         "rk4eps" : 1e-6,
         "periodify" : False,
-        "bc" : "along_field"
+        "bc" : "along_field",
+        "interpolation-method" : "linear"
     },
     "physical":
     {
