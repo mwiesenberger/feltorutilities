@@ -1,6 +1,5 @@
 import json
 import simplesimdb as simplesim
-import feltorutilities as fp
 import magneticfielddb as mag
 import numpy as np
 
@@ -19,8 +18,8 @@ inputfile = {
     "grid" :
     {
         "n" : 3,
-        "Nx" : 192, # 12*16 (max is about 312 on 1 GPU)
-        "Ny" : 336, # 21*16 (max is about 576 on 1 GPU)
+        "Nx" : 192, # 12*16 or 18*16 (max is about 312 on 1 GPU)
+        "Ny" : 336, # 21*16 or 31*16 (max is about 576 on 1 GPU)
         "Nz" : 32,
         "scaleR" : [1.45,1.25], # 2.7
         "scaleZ" : [2.4,2.25]   # 4.65
@@ -44,7 +43,7 @@ inputfile = {
         },
         "sheath" :
         {
-            "type" : "insulating",
+            "type" : "wall",
             "boundary" : 3/16, # large boundary seems to stabilize
             "alpha" : 3/16-1/32, # should also be large
             "penalization" : 5.0, # larger runs better
@@ -70,46 +69,48 @@ inputfile = {
             "ntilde":
             {
                 "type" : "turbulence",
-                "amplitude" : 1e-4,
-                "rk4eps" : 1e-6,
-                "refine" : [5,5],
+                "amplitude" : 0.01,
                 "revolutions" : 1,
+                "parallel" : "gaussian",
                 "sigma_z" : 0.5
             },
             "profile":
             {
                 "type" : "aligned",
                 "npeak" : 8.5,
-                "nsep" : 1.0
+                "nsep" : 1.0,
+                "background" : 0.2
             },
             "damping":
             {
                 "type" : "alignedPFR",
                 "alpha" : [0.1,0.03],
-                "boundary" : [1.1,0.98],
-                "background" : 0.2
+                "boundary" : [1.15, 0.97]
             }
         },
         "potential": { "type" : "zero_pol"},
         "velocity":
         {
-            "type" : "ui",
-            "profile" : "linear_cs"
+            "type" : "zero",
+            #"type" : "ui",
+            #"profile" : "linear_cs"
         },
         "aparallel": { "type" : "zero"}
     },
     "source" :
     {
-        "minne" : 0.2,  # minne seems to rescue the sol ue instability
-        "minrate" : 1.0, #
-        "minalpha" : 0.05, # smaller seems better
+        #"minne" : 0.2,  # minne seems to rescue the sol ue instability
+        #"minrate" : 1.0, #
+        #"minalpha" : 0.05, # smaller seems better
+        "minne" : 0.,  # without sheath no need for density forcing
         "type" : "influx",
         "rate" : 1e-4,
         "profile":
         {
             "type" : "aligned",
             "npeak" : 1.0,
-            "nsep" : 1.0/8.5
+            "nsep" : 1.0/8.5,
+            "background" : 0.0,
         },
         "ntilde" : {"type" : "zero"},
         "damping":
@@ -117,7 +118,6 @@ inputfile = {
             "type" : "alignedX",
             "alpha" : 0.2,
             "boundary" : 0.55,
-            "background" : 0.0
         }
     },
     "timestepper":
@@ -125,7 +125,8 @@ inputfile = {
         "type" : "adaptive",
         "tableau" : "Bogacki-Shampine-4-2-3",
         "rtol": 1e-5,
-        "atol" : 1e-9
+        "atol" : 1e-9,
+        "output-mode" : "free"
     },
     "regularization" :
     {

@@ -346,14 +346,14 @@ def load_calibration_default():
             {
                 "type" : "aligned",
                 "npeak" : 1.0,
-                "nsep" : 0.0
+                "nsep" : 0.0,
+                "background" : 0.0
             },
             "damping":
             {
                 "type": "alignedX",
                 "alpha" : 0.2,
-                "boundary" : 0.55,
-                "background" : 0.0
+                "boundary" : 0.55
             }
         },
         "init":
@@ -366,22 +366,22 @@ def load_calibration_default():
                 {
                     "type" : "turbulence",
                     "amplitude"  : 1e-4,
-                    "rk4eps" : 1e-6,
                     "revolutions" : 1,
+                    "parallel" : "gaussian",
                     "sigma_z" : 0.5
                 },
                 "profile":
                 {
                     "type" : "aligned",
                     "npeak" : 4.0,
-                    "nsep" : 1.0
+                    "nsep" : 1.0,
+                    "background" : 0.2
                 },
                 "damping":
                 {
                     "type": "alignedPFR",
                     "alpha" : [0.1,0.04],
-                    "boundary" : [1.14,0.96],
-                    "background" : 0.2
+                    "boundary" : [1.14,0.96]
                 }
             },
             "potential" : {"type" : "zero_pol"},
