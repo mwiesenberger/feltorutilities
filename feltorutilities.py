@@ -431,3 +431,17 @@ def load_calibration_default():
         }
     }
     return inputfile
+
+def load_default_config ():
+    configfile = {
+        # for feltordiag
+        "n": 3,
+        "Npsi": 64,
+        "Neta": 640,
+        "Kphi": 10,
+        "fsa" : "convoluted-toroidal-average", # or "toroidal-average"
+        # for interpolate in 3d
+        "fine-grid-factor" : 2,
+        "time-reduction-factor" : 10
+    }
+    return configfile
