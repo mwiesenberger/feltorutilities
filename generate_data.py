@@ -43,7 +43,8 @@ inputfile = {
         },
         "sheath" :
         {
-            "type" : "wall",
+            #"type" : "wall",
+            "type" : "insulating",
             "boundary" : 3/16, # large boundary seems to stabilize
             "alpha" : 3/16-1/32, # should also be large
             "penalization" : 5.0, # larger runs better
@@ -69,7 +70,7 @@ inputfile = {
             "ntilde":
             {
                 "type" : "turbulence",
-                "amplitude" : 0.01,
+                "amplitude" : 1e-4,
                 "revolutions" : 1,
                 "parallel" : "gaussian",
                 "sigma_z" : 0.5
@@ -91,18 +92,18 @@ inputfile = {
         "potential": { "type" : "zero_pol"},
         "velocity":
         {
-            "type" : "zero",
-            #"type" : "ui",
-            #"profile" : "linear_cs"
+            #"type" : "zero",
+            "type" : "ui",
+            "profile" : "linear_cs"
         },
         "aparallel": { "type" : "zero"}
     },
     "source" :
     {
-        #"minne" : 0.2,  # minne seems to rescue the sol ue instability
-        #"minrate" : 1.0, #
-        #"minalpha" : 0.05, # smaller seems better
-        "minne" : 0.,  # without sheath no need for density forcing
+        "minne" : 0.2,  # minne seems to rescue the sol ue instability
+        "minrate" : 1.0, #
+        "minalpha" : 0.05, # smaller seems better
+        #"minne" : 0.,  # without sheath no need for density forcing
         "type" : "influx",
         "rate" : 1e-4,
         "profile":
@@ -126,14 +127,16 @@ inputfile = {
         "tableau" : "Bogacki-Shampine-4-2-3",
         "rtol": 1e-5,
         "atol" : 1e-9,
-        "output-mode" : "free"
+        "output-mode" : "equidistant",
+        "Tend" : 1e5,
+        "reject-limit" : 10
     },
     "regularization" :
     {
         "order" : 2,
         "direction" : "forward",
-        "nu_perp_n" : 2e-5,
-        "nu_perp_u" : 2e-5,
+        "nu_perp_n" : 5e-3,
+        "nu_perp_u" : 5e-3,
     },
     "advection" :
     {
@@ -145,7 +148,7 @@ inputfile = {
         "eps_pol" : [1e-6, 100, 100],
         "eps_gamma" : 1e-7,
         "eps_ampere" : 1e-7,
-        "direction" : "centered",
+        "direction" : "forward",
         "jumpfactor" : 1.0
     },
     "FCI":
@@ -168,9 +171,9 @@ inputfile = {
     "output" :
     {
         "type" : "netcdf",
-        "inner_loop" : 5,
-        "itstp" : 200,
-        "maxout": 50,
+        "inner_loop" : 50,
+        "itstp" : 50,
+        "maxout": 2000,
         "compression": [2,2]
     }
 }
