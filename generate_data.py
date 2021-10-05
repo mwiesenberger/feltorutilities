@@ -22,7 +22,7 @@ inputfile = {
         "Ny" : 336, # 21*16 or 31*16 (max is about 576 on 1 GPU)
         "Nz" : 32,
         "scaleR" : [1.45,1.25], # 2.7
-        "scaleZ" : [2.4,2.25]   # 4.65
+        "scaleZ" : [2.475,2.25]   # 4.725
     },
     "advection":
     {
@@ -45,8 +45,9 @@ inputfile = {
         {
             #"type" : "wall",
             "type" : "insulating",
-            "boundary" : 3/16, # large boundary seems to stabilize
-            "alpha" : 3/16-1/32, # should also be large
+            #"type" : "bohm",
+            "boundary" : 7/32, # large boundary seems to stabilize
+            "alpha" : 7/32-2/32, # should also be large
             "penalization" : 5.0, # larger runs better
             "penalize-rhs" : True,
             "coordinate" : "s",
@@ -121,35 +122,21 @@ inputfile = {
             "boundary" : 0.55,
         }
     },
-    "timestepper":
-    {
-        "type" : "adaptive",
-        "tableau" : "Bogacki-Shampine-4-2-3",
-        "rtol": 1e-5,
-        "atol" : 1e-9,
-        "output-mode" : "equidistant",
-        "Tend" : 1e5,
-        "reject-limit" : 10
-    },
     "regularization" :
     {
         "order" : 2,
         "direction" : "forward",
         "nu_perp_n" : 5e-3,
-        "nu_perp_u" : 5e-3,
-    },
-    "advection" :
-    {
-        "slope-limiter": "none"
+        "nu_perp_u" : 2e-3,
     },
     "elliptic":
     {
         "stages": 3,
-        "eps_pol" : [1e-6, 100, 100],
+        "eps_pol" : [1e-6, 200, 100],
         "eps_gamma" : 1e-7,
         "eps_ampere" : 1e-7,
-        "direction" : "forward",
-        "jumpfactor" : 1.0
+        "direction" : "centered",
+        "jumpfactor" : 1.
     },
     "FCI":
     {
@@ -158,6 +145,7 @@ inputfile = {
         "periodify" : False,
         "bc" : "along_field",
         "interpolation-method" : "linear"
+        #"interpolation-method" : "dg"
     },
     "physical":
     {
@@ -168,19 +156,47 @@ inputfile = {
         "epsilon_D" : 4.1458919332419e-05,
         "viscosity" : "braginskii"
     },
+    "timestepper":
+    {
+        #"type" : "multistep-imex",
+        #"tableau" : "ImEx-TVB-3-3",
+        ##"dt" : 0.1,
+        #"dt" : 0.02,
+        #"eps_time" : 1e-8
+        #"type" : "adaptive",
+        "tableau" : "Bogacki-Shampine-4-2-3",
+        "type" : "adaptive",
+        "rtol": 1e-5,
+        "atol" : 1e-9,
+        "output-mode" : "equidistant",
+        "Tend" : 1e5,
+        "reject-limit" : 10
+    },
     "output" :
     {
         "type" : "netcdf",
-        "inner_loop" : 50,
-        "itstp" : 50,
-        "maxout": 2000,
+        #"inner_loop" : 10, #ignored parameter for equidistant output mode
+        "inner_loop" : 20,
+        "itstp" : 100,
+        "maxout": 1000,
         "compression": [2,2]
     }
 }
 
-#m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
-#
-#m.create( inputfile, 0, error="display")
+m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
+
+if m.exists( inputfile,0) :
+    print( "Simulation already run ", m.outfile( inputfile))
+else:
+    print( "Run Simulation ", m.outfile( inputfile))
+    filename = m.create( inputfile, 0, error="display")
+
+for i in range(0,10) :
+    if m.exists( inputfile,i) :
+        print( "Simulation already run ", m.outfile( inputfile, i))
+    else:
+        print( "Run Simulation ", m.outfile( inputfile, i))
+        m.create( inputfile, i, error="display")
 
 testfile = inputfile
 testfile["grid"]["Nx"] = 48

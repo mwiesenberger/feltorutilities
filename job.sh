@@ -1,7 +1,8 @@
 #!/bin/bash
 
 #SBATCH -N 4 -n 16 --ntasks-per-node=4 --exclusive
-#SBATCH --gres=gpu:4
+#####SBATCH --gres=gpu:4
+#SBATCH --gpus-per-node=4
 #SBATCH --partition=m100_fua_prod
 #SBATCH --account=fuac5_tsvv3
 #SBATCH --time=24:00:00 # 24 hours is maximum
