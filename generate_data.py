@@ -126,13 +126,13 @@ inputfile = {
     {
         "order" : 2,
         "direction" : "forward",
-        "nu_perp_n" : 5e-3,
-        "nu_perp_u" : 2e-3,
+        "nu_perp_n" : 1e-4,
+        "nu_perp_u" : 1e-4,
     },
     "elliptic":
     {
         "stages": 3,
-        "eps_pol" : [1e-6, 200, 100],
+        "eps_pol" : [1e-6, 1, 1],
         "eps_gamma" : 1e-7,
         "eps_ampere" : 1e-7,
         "direction" : "centered",
@@ -140,11 +140,11 @@ inputfile = {
     },
     "FCI":
     {
-        "refine" : [5,5],
+        "refine" : [6,6],
         "rk4eps" : 1e-6,
         "periodify" : False,
         "bc" : "along_field",
-        "interpolation-method" : "linear"
+        "interpolation-method" : "linear-nearest"
         #"interpolation-method" : "dg"
     },
     "physical":
@@ -167,16 +167,14 @@ inputfile = {
         "tableau" : "Bogacki-Shampine-4-2-3",
         "type" : "adaptive",
         "rtol": 1e-5,
-        "atol" : 1e-9,
-        "output-mode" : "equidistant",
-        "Tend" : 1e5,
+        "atol" : 1e-6,
+        "output-mode" : "deltaT",
+        "deltaT" : 100,
         "reject-limit" : 10
     },
     "output" :
     {
         "type" : "netcdf",
-        #"inner_loop" : 10, #ignored parameter for equidistant output mode
-        "inner_loop" : 20,
         "itstp" : 100,
         "maxout": 1000,
         "compression": [2,2]
@@ -204,8 +202,8 @@ testfile["grid"]["Ny"] = 80
 testfile["flags"] = ["symmetric"]
 
 testfile["output"]["type"] = "glfw"
-testfile["output"]["inner_loop"] = 2
 testfile["output"]["itstp"] = 1
+testfile["timestepper"]["deltaT"] = 1
 testfile["output"]["window"] = {"rows":6, "reduction" : 4, "width" :200, "height" : 400}
 with open( "test.json", 'w') as f:
     inputstring = json.dump( inputfile, f,
