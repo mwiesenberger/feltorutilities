@@ -126,26 +126,26 @@ inputfile = {
     {
         "order" : 2,
         "direction" : "forward",
-        "nu_perp_n" : 1e-4,
-        "nu_perp_u" : 1e-4,
+        "nu_perp_n" : 1e-3,
+        "nu_perp_u" : 1e-3,
+        "nu_parallel_n" : 5e2
     },
     "elliptic":
     {
         "stages": 3,
-        "eps_pol" : [1e-6, 1, 1],
-        "eps_gamma" : 1e-7,
-        "eps_ampere" : 1e-7,
-        "direction" : "centered",
+        "eps_pol" : [1e-6, 0.5, 0.5], # 0.5, 0.5 should prevent outliers on stage 0
+        "eps_gamma" : 1e-8, # gamma inverts much faster than pol
+        "eps_ampere" : 1e-8, # ampere inverts much faster than pol
+        "direction" : "forward", # centered can make oscillations
         "jumpfactor" : 1.
     },
     "FCI":
     {
-        "refine" : [6,6],
+        "refine" : [12,12], # 12 may be better for conservation than 6
         "rk4eps" : 1e-6,
         "periodify" : False,
         "bc" : "along_field",
         "interpolation-method" : "linear-nearest"
-        #"interpolation-method" : "dg"
     },
     "physical":
     {
@@ -183,13 +183,7 @@ inputfile = {
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
-if m.exists( inputfile,0) :
-    print( "Simulation already run ", m.outfile( inputfile))
-else:
-    print( "Run Simulation ", m.outfile( inputfile))
-    filename = m.create( inputfile, 0, error="display")
-
-for i in range(0,10) :
+for i in range(0,2) :
     if m.exists( inputfile,i) :
         print( "Simulation already run ", m.outfile( inputfile, i))
     else:
