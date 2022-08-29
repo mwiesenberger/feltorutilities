@@ -7,7 +7,7 @@ import numpy as np
 # select magnetic field and R_0
 params = mag.select( "COMPASS/compass_1X.json")
 params["R_0"]=545.0
-# select input
+
 inputfile = {
     "magnetic_field" :
     {
@@ -154,7 +154,9 @@ inputfile = {
         "beta" : 1e-4,
         "resistivity" : 1e-4,
         "epsilon_D" : 4.1458919332419e-05,
-        "viscosity" : "braginskii"
+        "viscosity" : "value",
+        "nu_parallel" : [ 3700, 114]
+
     },
     "timestepper":
     {
@@ -183,12 +185,26 @@ inputfile = {
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
-for i in range(0,2) :
-    if m.exists( inputfile,i) :
-        print( "Simulation already run ", m.outfile( inputfile, i))
-    else:
-        print( "Run Simulation ", m.outfile( inputfile, i))
-        m.create( inputfile, i, error="display")
+eps_map = { # resistivity -> [ epsilon_D , source_rate, deltaT]# [1ms]
+    3e-4: [2.3936318213431424e-05, 2e-4,    100], # 14667
+    1e-4: [4.1458919332419e-05,    1e-4,    100], # 19303
+    3e-5: [7.569328442972544e-05,  0.5e-4,  100], # 26082
+    1e-5: [0.00013110461385575586, 0.35e-4, 150], # 34326
+    3e-6: [0.00023936318237861086, 0.30e-4, 200], # 46382
+    1e-6: [0.0004145891932469323,  0.25e-4, 200]  # 61042
+}
+for key in  eps_map:
+    inputfile["physical"]["resistivity"] = key
+    inputfile["physical"]["epsilon_D"] =  eps_map[key][0]
+    inputfile["source"]["rate"] =  eps_map[key][1]
+    inputfile["timestepper"]["deltaT"] =  eps_map[key][2]
+    print( inputfile["physical"])
+    for i in range(0,6) :
+        if m.exists( inputfile,i) :
+            print( "Simulation already run ", m.outfile( inputfile, i))
+        else:
+            print( "Run Simulation ", m.outfile( inputfile, i))
+            m.create( inputfile, i, error="display")
 
 testfile = inputfile
 testfile["grid"]["Nx"] = 48
