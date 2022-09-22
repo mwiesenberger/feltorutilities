@@ -182,6 +182,8 @@ def numerical2physical( numerical, physical):
     """Invert numerical parameters to physical parameters
 
     Execution path depends on which keys are present in the two dictionaries
+    numerical (dict) : "epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"
+    physical  (dict) : "R", "B_0", "T_e", "T_i", "n_0", "m_i"
 
     """
 
@@ -231,7 +233,7 @@ def numerical2physical( numerical, physical):
         print( "Invert for given R and B_0")
         if ((not "R" in physical) or (physical["R"] == 0) or
             (not "B_0" in physical) or (physical["B_0"] == 0)):
-            raise ValueError ( "B_0 and R_0 must be present in physical and be different from zero")
+            raise ValueError ( "B_0 and R must be present in physical and be different from zero")
         def to_invert2( x, B_0, R,
                   for_mu, for_tau, for_eta, for_R_0) :
             T_e, T_i, n_0 = x
@@ -287,9 +289,13 @@ def load_calibration_default():
         },
         "timestepper":
         {
-            "type"  : "multistep",
-            "tableau": "TVB-3-3",
-            "dt" : 1e-2
+            "tableau" : "Bogacki-Shampine-4-2-3",
+            "type" : "adaptive",
+            "rtol": 1e-5,
+            "atol" : 1e-6,
+            "output-mode" : "deltaT",
+            "deltaT" : 100,
+            "reject-limit" : 10
         },
         "regularization":
         {
@@ -297,14 +303,15 @@ def load_calibration_default():
             "direction": "forward",
             "nu_perp_n" : 1e-5,
             "nu_perp_u" : 1e-5,
+            "nu_parallel_n" : 5e2
         },
         "elliptic":
         {
             "stages" : 2,
-            "eps_pol"    : [1e-6, 10],
+            "eps_pol"    : [1e-6, 0.5],
             "eps_gamma" : 1e-7,
             "eps_ampere" : 1e-7,
-            "direction" : "centered",
+            "direction" : "forward",
             "jumpfactor" : 1.0
         },
         "FCI":
@@ -318,6 +325,7 @@ def load_calibration_default():
         "physical":
         {
             "mu"          : -0.000272121,
+            "epsilon_D" : 4.1458919332419e-05,
             "tau"         : 0.5,
             "beta"        : 1e-5,
             "resistivity" : 1e-4,
@@ -326,7 +334,6 @@ def load_calibration_default():
         "output":
         {
             "type" : "netcdf",
-            "inner_loop" : 2,
             "itstp"  : 2,
             "maxout" : 1,
             "compression" : [1,1]
