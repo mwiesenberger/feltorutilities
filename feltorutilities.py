@@ -297,6 +297,7 @@ def load_calibration_default():
             "direction": "forward",
             "nu_perp_n" : 1e-5,
             "nu_perp_u" : 1e-5,
+            "nu_parallel_n" : 5e2
         },
         "elliptic":
         {
@@ -329,7 +330,16 @@ def load_calibration_default():
             "inner_loop" : 2,
             "itstp"  : 2,
             "maxout" : 1,
-            "compression" : [1,1]
+            "compression" : [1,1],
+            "equations":{
+                "Basic": True,
+                "Mass-conserv": True,
+                "Energy-theorem": True,
+                "Toroidal-momentum": True,
+                "Parallel-momentum": True,
+                "Zonal-Flows-Energy": True,
+                "COCE": True
+            }
         },
         "source":
         {
