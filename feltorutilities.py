@@ -452,6 +452,18 @@ def load_default_config ():
         "fsa" : "convoluted-toroidal-average", # or "toroidal-average"
         # for interpolate in 3d
         "fine-grid-factor" : 2,
-        "time-reduction-factor" : 10
+        "time-reduction-factor" : 10,
+        "DIAG_OUTPUTS":{
+        "1dStatics": True,
+        "fsa1d": True,
+        "fsa2d": True,
+        "cta2d": True,
+        "cta2dX": True,
+        "fluc2d": True,
+        "ifs": True,
+        "std_fsa": True,
+        "ifs_lcfs": True,
+        "ifs_norm": True
+        }
     }
     return configfile
