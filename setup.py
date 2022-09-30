@@ -12,7 +12,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/mwiesenberger/feltorutilities",
-    pymodules=["feltorutilities"],
+    py_modules=['feltorutilities'],
     license="MIT",
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -23,6 +23,5 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
-    py_modules=[]
+    tests_require=['pytest']
 )
