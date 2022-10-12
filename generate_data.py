@@ -179,25 +179,35 @@ inputfile = {
         "type" : "netcdf",
         "itstp" : 100,
         "maxout": 1000,
-        "compression": [2,2]
+        "compression": [2,2],
+        "equations":{
+            "Basic": True,
+            "Mass-conserv": True,
+            "Energy-theorem": True,
+            "Toroidal-momentum": True,
+            "Parallel-momentum": True,
+            "Zonal-Flows-Energy": True,
+            "COCE": True
+        }
     }
 }
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
-eps_map = { # resistivity -> [ epsilon_D , source_rate, deltaT]# [1ms]
-    3e-4: [2.3936318213431424e-05, 2e-4,    100], # 14667
-    1e-4: [4.1458919332419e-05,    1e-4,    100], # 19303
-    3e-5: [7.569328442972544e-05,  0.5e-4,  100], # 26082
-    1e-5: [0.00013110461385575586, 0.35e-4, 150], # 34326
-    3e-6: [0.00023936318237861086, 0.30e-4, 200], # 46382
-    1e-6: [0.0004145891932469323,  0.25e-4, 200]  # 61042
+eps_map = { # resistivity -> [ epsilon_D , source_rate, deltaT, previous name]# [1ms]
+    3e-4: [2.3936318213431424e-05, 2e-4,    100, "922c17c817a756e4632e15bc86464abc60f45628"], # 14667
+    1e-4: [4.1458919332419e-05,    1e-4,    100, "33752dd60b65c471ded739466e3f196ad1c410d9"], # 19303
+    3e-5: [7.569328442972544e-05,  0.5e-4,  100, "c857bb29fb57ca1f7f563fd16dc9c26afc644f18"], # 26082
+    1e-5: [0.00013110461385575586, 0.35e-4, 150, "8018809091944c0999b258c85eab09171a919ff2"], # 34326
+    3e-6: [0.00023936318237861086, 0.30e-4, 200, "f861b2031ceca72b26ede2111cd19b65626da364"], # 46382
+    1e-6: [0.0004145891932469323,  0.25e-4, 200, "09921d0de3af7a8e467b2cb72e70bcc1d355799b"]  # 61042
 }
 for key in  eps_map:
     inputfile["physical"]["resistivity"] = key
     inputfile["physical"]["epsilon_D"] =  eps_map[key][0]
     inputfile["source"]["rate"] =  eps_map[key][1]
     inputfile["timestepper"]["deltaT"] =  eps_map[key][2]
+    m.register ( inputfile, eps_map[key][3])
     print( inputfile["physical"])
     for i in range(0,6) :
         if m.exists( inputfile,i) :
