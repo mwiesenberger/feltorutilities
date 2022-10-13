@@ -186,7 +186,7 @@ inputfile = {
             "Energy-theorem": True,
             "Toroidal-momentum": True,
             "Parallel-momentum": True,
-            "Zonal-Flows-Energy": True,
+            "Zonal-Flow-Energy": True,
             "COCE": True
         }
     }
