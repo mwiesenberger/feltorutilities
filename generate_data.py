@@ -132,8 +132,8 @@ inputfile = {
     },
     "elliptic":
     {
-        "stages": 3,
-        "eps_pol" : [1e-6, 0.5, 0.5], # 0.5, 0.5 should prevent outliers on stage 0
+        "stages": 5,
+        "eps_pol" : [1e-6, 0.5, 0.5, 0.5, 0.5], # 0.5 prevents outliers on stage 0
         "eps_gamma" : 1e-8, # gamma inverts much faster than pol
         "eps_ampere" : 1e-8, # ampere inverts much faster than pol
         "direction" : "forward", # centered can make oscillations
