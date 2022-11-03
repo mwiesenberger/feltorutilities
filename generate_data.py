@@ -179,16 +179,7 @@ inputfile = {
         "type" : "netcdf",
         "itstp" : 100,
         "maxout": 1000,
-        "compression": [2,2],
-        "equations":{
-            "Basic": True,
-            "Mass-conserv": True,
-            "Energy-theorem": True,
-            "Toroidal-momentum": True,
-            "Parallel-momentum": True,
-            "Zonal-Flow-Energy": True,
-            "COCE": True
-        }
+        "compression": [2,2]
     }
 }
 

@@ -337,15 +337,15 @@ def load_calibration_default():
             "itstp"  : 2,
             "maxout" : 1,
             "compression" : [1,1],
-            "equations":{
-                "Basic": True,
-                "Mass-conserv": True,
-                "Energy-theorem": True,
-                "Toroidal-momentum": True,
-                "Parallel-momentum": True,
-                "Zonal-Flows-Energy": True,
-                "COCE": True
-            }
+            "equations":[
+                "Basic",
+                "Mass-conserv",
+                "Energy-theorem",
+                "Toroidal-momentum",
+                "Parallel-momentum",
+                "Zonal-Flows-Energy",
+                "COCE"
+            ]
         },
         "source":
         {
@@ -456,20 +456,21 @@ def load_default_config ():
         "Neta": 640,
         "Kphi": 10,
         "fsa" : "convoluted-toroidal-average", # or "toroidal-average"
+        "diagnostics":
+        [
+            "1dStatics",
+            "fsa1d",
+            "fsa2d",
+            "cta2d",
+            "cta2dX",
+            "fluc2d",
+            "ifs",
+            "std_fsa",
+            "ifs_lcfs",
+            "ifs_norm"
+        ],
         # for interpolate in 3d
         "fine-grid-factor" : 2,
-        "time-reduction-factor" : 10,
-        "DIAG_OUTPUTS":{
-        "1dStatics": True,
-        "fsa1d": True,
-        "fsa2d": True,
-        "cta2d": True,
-        "cta2dX": True,
-        "fluc2d": True,
-        "ifs": True,
-        "std_fsa": True,
-        "ifs_lcfs": True,
-        "ifs_norm": True
-        }
+        "time-reduction-factor" : 10
     }
     return configfile
