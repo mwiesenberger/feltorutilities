@@ -458,8 +458,7 @@ def load_default_config ():
         "fsa" : "convoluted-toroidal-average", # or "toroidal-average"
         "diagnostics":
         [
-            "1dStatics",
-            "fsa1d",
+            "fsa",
             "fsa2d",
             "cta2d",
             "cta2dX",
