@@ -10,8 +10,8 @@ and analysis of the 3d feltor code.
 The notebooks depend on the `pandas` and `numpy` packages and the `simplesimdb` module. The
 latter can be obtained via
 ```bash
-git clone https://github.com/mwiesenberger/simplesimdb
-cd simplesimdb
+git clone https://github.com/mwiesenberger/feltorutilities
+cd feltorutilities
 pip install -e .
 ```
 
