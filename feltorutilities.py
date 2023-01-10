@@ -343,7 +343,7 @@ def load_calibration_default():
                 "Energy-theorem",
                 "Toroidal-momentum",
                 "Parallel-momentum",
-                "Zonal-Flows-Energy",
+                "Zonal-Flow-Energy",
                 "COCE"
             ]
         },
