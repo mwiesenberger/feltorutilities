@@ -455,7 +455,8 @@ def load_default_config ():
         "Npsi": 64,
         "Neta": 640,
         "Kphi": 10,
-        "fsa" : "convoluted-toroidal-average", # or "toroidal-average"
+        "fx_0" : 0.125,
+        "fsa" : "toroidal-average", # or "convoluted-toroidal-average"
         "diagnostics":
         [
             "fsa",
