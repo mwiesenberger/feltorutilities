@@ -1,9 +1,50 @@
+"""Utilities for the setup of simulation parameters in Feltor
+
+################ PLASMA FORMULARY
+First, a list of plasma formulas is provided. These functions can be called as
+
+import feltorutilities as fp
+fp.rho_s( B_0, m_i, T_e)
+# or
+fp.rho_s( **parameters)
+
+where parameters is a dictionary that contains at least (in this case) "B_0",
+"m_i" and "T_e"
+To get a list of available functions type
+
+function_names = fp.quantities()
+
+A utility function is provided that lets you compute a collection of quantities
+from given parameters at once, e.g.
+
+values = parameters2quantities( params, ["rho_s", "c_s", "omega_0_inv"])
+
+################ INVERT NUMERICAL PARAMETERS
+Second we provide a utility function that inverts given numerical parameters
+back to the corresponding physical ones. This is useful in analysing
+simulation data where only the numerical values are stored
+Use as
+numerical2physical( numerical, physical)
+
+################ CREATE DEFAULT PARAMETERS
+Last, we have two functions that generate default parameters for a feltor
+calibration:
+
+load_default_config()
+
+and a feltordiag run:
+
+load_calibration_default()
+
+"""
 import numpy as np
 import scipy.constants as cte
 import scipy.optimize as opt
 
+""" Dictionary containing function-name : function pairs """
 tasks = {}
 # design copied from stackoverflow
+# https://stackoverflow.com/questions/9168340/using-a-dictionary-to-select-function-to-execute
 task = lambda f: tasks.setdefault( f.__name__, f)
 
 #WE PASS **kwargs TO ALL FUNCTIONS SO THAT WE CAN CALL ALL WITH DICTIONARIES
@@ -32,76 +73,89 @@ task = lambda f: tasks.setdefault( f.__name__, f)
 # scale variables
 @task
 def rho_s( B_0, m_i, T_e, **kwargs) :
-    """ Spatial scale [m]: ion Larmor radius at electron temperature"""
+    """ Spatial scale [m]: ion Larmor radius at electron temperature;
+        B_0 in T, m_i in kg, T_e in eV
+    """
     return  np.sqrt( T_e *cte.eV * m_i)  / cte.e / B_0
 
 @task
 def omega_0_inv( B_0, m_i, **kwargs):
-    """ Time scale [s]: inverse ion Larmor frequency"""
+    """ Time scale [s]: inverse ion Larmor frequency;
+        B_0 in T, m_i in kg
+    """
     return m_i / cte.e / B_0
 
 @task
 def c_s( m_i, T_e, **kwargs) :
-    """ Velocity scale [m/s]: Ion sound speed at electron temperature"""
+    """ Velocity scale [m/s]: Ion sound speed at electron temperature;
+        m_i in kg, T_e in eV
+    """
     return np.sqrt( T_e*cte.eV/m_i)
 
 @task
 def Phi_0( T_e, **kwargs) :
-    """Scale of potential [eV]"""
+    """Scale of potential [eV]; T_e in eV """
     return T_e*cte.eV/cte.e
 
 @task
 def Psip_0(B_0, m_i, T_e, R, **kwargs):
-    """ Scale of magnetic flux []"""
+    """ Scale of magnetic flux B_0*rho_s*R;
+    B_0 in T, m_i in kg, T_e in eV, R in m
+    """
     return B_0*rho_s( B_0, m_i, T_e)*R
 
 @task
 def lambda_D( T_e, n_0, **kwargs):
-    """Debye length [m]"""
+    """Debye length [m]; T_e in eV, n_0 in 1e19m^-3 """
     return np.sqrt(cte.epsilon_0*T_e*cte.eV/n_0/1e19/cte.e**2)
+
+@task
+def omega_p( n_0, **kwargs) :
+    """plasma frequency [1/s]; n_0 in 1e19m^-3"""
+    return np.sqrt( n_0*1e19*cte.e**2/cte.m_e/cte.epsilon_0)
 
 # independent numerical variables
 @task
 def mu ( m_i, **kwargs) : # proton mass, deuteron mass, triton mass
-    """ electron mass ratio"""
+    """ negative electron to ion mass ratio; m_i in kg"""
     return -cte.m_e/ m_i
 
 @task
 def tau ( T_e, T_i, **kwargs) :
-    """ ion to electron temperature ratio"""
+    """ ion to electron temperature ratio; T_e in eV, T_i in eV"""
     return T_i / T_e
 
 @task
-def beta( n_0, T_e, B_0, **kwargs) :  # n_0 in 1e-19, T_e in eV, B_0 in T
-    """ electron plasma beta"""
+def beta( n_0, T_e, B_0, **kwargs) :
+    """ electron plasma beta; n_0 in 1e19, T_e in eV, B_0 in T"""
     return n_0*1e19*T_e*cte.eV / (B_0**2 / cte.mu_0)
 
 @task
 def resistivity( n_0, T_e, B_0, **kwargs):
-    """plasma resistivity"""
+    """plasma resistivity; n_0 in 1e19m^-3, T_e in eV, B_0 in T"""
     return 0.51*np.sqrt( 2*cte.m_e)*cte.e**3*10/ 12/np.pi**(3/2)/\
             cte.epsilon_0**2 * n_0*1e19 / B_0 / (T_e*cte.eV)**(3/2)
 
 @task
 def R_0 ( B_0, m_i, T_e, R, **kwargs) :
-    """machine radius relative to Larmor radius"""
+    """machine radius relative to Larmor radius; B_0 in T, m_i in kg, T_e in eV, R in m"""
     return R / rho_s(B_0, m_i, T_e)
 
 @task
 def epsilon_D ( n_0, B_0, m_i, **kwargs) :
-    """Square Debye length relative to Larmor radius"""
+    """Square Debye length relative to Larmor radius; n_0 in 1e19m^-3, B_0 in T, m_i in kg"""
     return cte.epsilon_0/n_0/1e19/m_i*B_0**2
 
 # dependent numerical variables
 
 @task
 def viscosity_e( n_0, T_e, B_0, **kwargs) :
-    """ parallel electron viscosity"""
+    """ parallel electron viscosity: 0.37/resistivity(n_0, T_e, B_0)"""
     return 0.37/resistivity(n_0, T_e, B_0)
 
 @task
 def viscosity_i( n_0, T_e, B_0, m_i, **kwargs) :
-    """ parallel ion viscosity"""
+    """ parallel ion viscosity: 0.69/resistivity(n_0, T_e, B_0)*np.sqrt( np.abs(mu(m_i))"""
     #return 0.96/np.sqrt( m_i)/cte.e**3/10* 12*np.pi**(3/2)*\
     #        cte.epsilon_0**2 * B_0 * (T_i*cte.eV)**(3/2) /(n_0*1e19)
     return 0.69/resistivity(n_0, T_e, B_0)*np.sqrt( np.abs(mu(m_i)))
@@ -109,20 +163,25 @@ def viscosity_i( n_0, T_e, B_0, m_i, **kwargs) :
 # Miscellaneous ( inverseaspectratio, q)
 @task
 def inverseaspectratio( a, R, **kwargs) :
+    """ a / R"""
     return a/R
 
 @task
 def aspectratio( a, R, **kwargs) :
+    """ R / a"""
     return R/a
 @task
 def a_0( B_0, m_i, T_e, a, **kwargs) :
+    """ machine minor radius relative to Larmor radius; B_0 in T, m_i in kg, T_e in eV, a in m"""
     return R_0(B_0, m_i, T_e, a)
 
 @task
 def lparallel( q, R, **kwags):
+    """ q*R """
     return q*R
 @task
 def lparallel_rhos( q, B_0, m_i, T_e, R, **kwargs):
+    """ q*R_0(B_0, m_i, T_e, R) """
     return q*R_0(B_0, m_i, T_e, R)
 
 #def alpha_MHD( q, inverseaspectratio, beta, DeltaN):
@@ -131,45 +190,49 @@ def lparallel_rhos( q, B_0, m_i, T_e, R, **kwargs):
 
 @task
 def Myra (n_0, T_e, B_0, m_i, q, R, **kwargs):
+    """ resistivity(n_0,T_e,B_0) * lparallel_rhos(q,B_0,m_i,T_e,R) """
     return resistivity(n_0, T_e, B_0) * lparallel_rhos(q, B_0, m_i, T_e, R)
 
 @task
 def Knudsen (m_i, n_0, T_e, B_0, q, R, **kwargs):
-    """ 0.51 sqrt(mu)/Myra"""
+    """ 0.51 sqrt(|mu|)/Myra(n_0,T_e,B_0,m_i,q,R)"""
     return 0.51*np.sqrt( abs( mu(m_i)))/ Myra (n_0, T_e, B_0, m_i, q, R)
 
 @task
 def pref(m_i, n_0, T_e, B_0, R, **kwargs):
-    """ presssure reference p = pref * Psip """
+    """ presssure reference: 1/R_0(B_0,m_i,T_e,R)/beta(n_0,T_e,B_0) """
     return 1/R_0(B_0, m_i, T_e, R)/beta( n_0, T_e, B_0)
 
 @task
 def nu_perp(n_0, T_e, B_0, m_i, **kwargs) :
+    """ 0.96/viscosity_i(n_0,T_e,B_0,m_i)"""
     return 0.96/viscosity_i(n_0, T_e, B_0, m_i)
 
 @task
 def GAM_inv (B_0, m_i,T_e, R, **kwargs) :
-    """ inverse GAM frequency """
+    """ inverse GAM frequency, 1/R_0(B_0,m_i,T_e,R) """
     return 1.0/R_0(B_0, m_i, T_e, R)
 
 # other scales
 @task
 def paraview_scale(B_0, m_i, T_e, **kwargs):
+    """ 1 / rho_s(B_0,m_i,T_e) """
     return 1.0/rho_s(B_0, m_i, T_e)
 
 @task
 def GBS_timescale(B_0, m_i, T_e, R, **kwargs) :
-    """ timescale in GBS units """
+    """ timescale in GBS units, R_0(B_0,m_i,T_e,R)*omega_0_inv(B_0,m_i)"""
     return R_0(B_0, m_i, T_e, R)*omega_0_inv(B_0,m_i)
 
 @task
 def GBS_resistivity(n_0, T_e, B_0, m_i, R, **kwargs):
-    """ resistivity in GBS units """
+    """ resistivity in GBS units, resistivity(n_0, T_e, B_0)*R_0(B_0, m_i, T_e, R)"""
     return resistivity(n_0, T_e, B_0)*R_0(B_0, m_i, T_e, R)
 
 @task
 def CFL_diff( n_0, B_0, m_i, T_e, R, a, scaleR, Nz, **kwargs):
-    """ CFL condition due to parallel diffusion """
+    """ CFL condition due to parallel diffusion; (2.*np.pi/Nz*R_0(B_0, m_i, T_e, R)*(
+        1-scaleR*a/R))**2/viscosity_e( n_0, T_e, B_0)"""
     return (2.*np.pi/Nz*R_0(B_0, m_i, T_e, R)*(
         1-scaleR*a/R))**2/viscosity_e( n_0, T_e, B_0)
 
@@ -181,9 +244,24 @@ triton_mass   = cte.physical_constants["triton mass"][0]
 def numerical2physical( numerical, physical):
     """Invert numerical parameters to physical parameters
 
-    Execution path depends on which keys are present in the two dictionaries
+    There is a one-to-one map between the 6 physical parameters to the 6
+    numerical parameters:
+
     numerical (dict) : "epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"
     physical  (dict) : "R", "B_0", "T_e", "T_i", "n_0", "m_i"
+
+    We have R in m, B_0 in T, T_e in eV, T_i in eV, n_0 in 1e19m^{-3} and m_i in kg
+
+    The numerical parameters can be computed from the physical ones using
+    parameters2quantities( physical, ["epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"])
+
+    The inverse can be computed if
+     - All 6 numerical parameters are present
+     - "mu" can be absent from numerical if "m_i" is present in physical
+     - "epsilon_D" can be absent from numerical if "R" is present in physical
+     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are present in physical
+    On return numerical will contain all numerical and physical will contain all physical parameters
+    numerical and physical can be the same dictionary
 
     """
 
@@ -258,6 +336,18 @@ def quantities() :
     return tasks.keys()
 
 def parameters2quantity( parameters, quantity) :
+    """Call the function named quantity and return its value
+
+    E.g. fp.parameters2quantity( params, "rho_s")
+    is the same as
+    fp.rho_s( **params)
+    If the quantity is present as a key in the parameters dictionary, the
+    corresponding value is returned
+
+    parameters (dict): dictionary of named constants that is passed on to the
+        quantity function to call
+    quantity (string): the name of the function to call
+    """
     if quantity in parameters.keys() :
         return  parameters[quantity]
     else :
@@ -265,7 +355,14 @@ def parameters2quantity( parameters, quantity) :
 
 
 def parameters2quantities( parameters, quantities) :
-    """ Return a list of values corresponding to quantities """
+    """ Return a list of values corresponding to quantities
+
+    Calls parameters2quantity for each quantity in quantities
+
+    parameters (dict): dictionary of named constants that is passed on to the
+        quantity functions to call
+    quantities (list/collection of strings): the names of the functions to call
+    """
     myList = []
     for quantity in quantities:
         myList.append( parameters2quantity( parameters, quantity))
@@ -449,6 +546,7 @@ def load_calibration_default():
     return inputfile
 
 def load_default_config ():
+    """ Generate default parameters for feltordiag """
     configfile = {
         # for feltordiag
         "n": 3,
