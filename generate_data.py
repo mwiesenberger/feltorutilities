@@ -7,6 +7,7 @@ import numpy as np
 # select magnetic field and R_0
 params = mag.select( "COMPASS/compass_1X.json")
 params["R_0"]=545.0
+tau = 0.0 # 1.0
 
 inputfile = {
     "magnetic_field" :
@@ -150,7 +151,7 @@ inputfile = {
     "physical":
     {
         "mu" : -0.00027244371074816386,
-        "tau" : 1.0,
+        "tau" : tau,
         "beta" : 1e-4,
         "resistivity" : 1e-4,
         "epsilon_D" : 4.1458919332419e-05,
@@ -198,9 +199,9 @@ for key in  eps_map:
     inputfile["physical"]["epsilon_D"] =  eps_map[key][0]
     inputfile["source"]["rate"] =  eps_map[key][1]
     inputfile["timestepper"]["deltaT"] =  eps_map[key][2]
-    m.register ( inputfile, eps_map[key][3])
+    #m.register ( inputfile, eps_map[key][3])
     print( inputfile["physical"])
-    for i in range(0,6) :
+    for i in range(0,6) : # set number of sims here
         if m.exists( inputfile,i) :
             print( "Simulation already run ", m.outfile( inputfile, i))
         else:
