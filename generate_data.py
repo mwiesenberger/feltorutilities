@@ -18,9 +18,9 @@ inputfile = {
     },
     "grid" :
     {
-        "n" : 3,
-        "Nx" : 192, # 12*16 or 18*16 (max is about 312 on 1 GPU)
-        "Ny" : 336, # 21*16 or 31*16 (max is about 576 on 1 GPU)
+        "n" : 4,
+        "Nx" : 192, # 12*16 or 18*16 (max is about 3*312 on 1 GPU)
+        "Ny" : 336, # 21*16 or 31*16 (max is about 3*576 on 1 GPU)
         "Nz" : 32,
         "scaleR" : [1.45,1.25], # 2.7
         "scaleZ" : [2.475,2.25]   # 4.725
@@ -127,9 +127,9 @@ inputfile = {
     {
         "order" : 2,
         "direction" : "forward",
-        "nu_perp_n" : 1e-3,
-        "nu_perp_u" : 1e-3,
-        "nu_parallel_n" : 5e2
+        "nu_perp_n" : 1e-4,
+        "nu_perp_u" : 1e-4,
+        "nu_parallel_n" : 1e3
     },
     "elliptic":
     {
@@ -142,7 +142,7 @@ inputfile = {
     },
     "FCI":
     {
-        "refine" : [12,12], # 12 may be better for conservation than 6
+        "refine" : [6,6], # 12 may be better for conservation than 6
         "rk4eps" : 1e-6,
         "periodify" : False,
         "bc" : "along_field",
@@ -178,28 +178,36 @@ inputfile = {
     "output" :
     {
         "type" : "netcdf",
-        "itstp" : 100,
+        "itstp" : 200,
         "maxout": 1000,
-        "compression": [2,2]
+        "compression": [1,1],
+        "equations":[
+            "Basic",
+            "Mass-conserv",
+            "Energy-theorem",
+            "Toroidal-momentum",
+            "Parallel-momentum",
+            "Zonal-Flow-Energy",
+            "COCE"
+        ]
     }
 }
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
 eps_map = { # resistivity -> [ epsilon_D , source_rate, deltaT, previous name]# [1ms]
-    3e-4: [2.3936318213431424e-05, 2e-4,    100, "922c17c817a756e4632e15bc86464abc60f45628"], # 14667
-    1e-4: [4.1458919332419e-05,    1e-4,    100, "33752dd60b65c471ded739466e3f196ad1c410d9"], # 19303
-    3e-5: [7.569328442972544e-05,  0.5e-4,  100, "c857bb29fb57ca1f7f563fd16dc9c26afc644f18"], # 26082
-    1e-5: [0.00013110461385575586, 0.35e-4, 150, "8018809091944c0999b258c85eab09171a919ff2"], # 34326
-    3e-6: [0.00023936318237861086, 0.30e-4, 200, "f861b2031ceca72b26ede2111cd19b65626da364"], # 46382
-    1e-6: [0.0004145891932469323,  0.25e-4, 200, "09921d0de3af7a8e467b2cb72e70bcc1d355799b"]  # 61042
+    3e-4: [2.3936318213431424e-05, 2e-4,    100], # 14667
+    1e-4: [4.1458919332419e-05,    1e-4,    100], # 19303
+    3e-5: [7.569328442972544e-05,  0.5e-4,  100], # 26082
+    1e-5: [0.00013110461385575586, 0.35e-4, 150], # 34326
+    3e-6: [0.00023936318237861086, 0.30e-4, 200], # 46382
+    1e-6: [0.0004145891932469323,  0.25e-4, 200]  # 61042
 }
 for key in  eps_map:
     inputfile["physical"]["resistivity"] = key
     inputfile["physical"]["epsilon_D"] =  eps_map[key][0]
     inputfile["source"]["rate"] =  eps_map[key][1]
     inputfile["timestepper"]["deltaT"] =  eps_map[key][2]
-    #m.register ( inputfile, eps_map[key][3])
     print( inputfile["physical"])
     for i in range(0,6) : # set number of sims here
         if m.exists( inputfile,i) :
