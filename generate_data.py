@@ -7,7 +7,6 @@ import numpy as np
 # select magnetic field and R_0
 params = mag.select( "COMPASS/compass_1X.json")
 params["R_0"]=545.0
-tau = 0.0 # 1.0
 
 inputfile = {
     "magnetic_field" :
@@ -18,7 +17,7 @@ inputfile = {
     },
     "grid" :
     {
-        "n" : 4,
+        "n" : 3,
         "Nx" : 192, # 12*16 or 18*16 (max is about 3*312 on 1 GPU)
         "Ny" : 336, # 21*16 or 31*16 (max is about 3*576 on 1 GPU)
         "Nz" : 32,
@@ -126,9 +125,9 @@ inputfile = {
     "regularization" :
     {
         "order" : 2,
-        "direction" : "forward",
-        "nu_perp_n" : 1e-4,
-        "nu_perp_u" : 1e-4,
+        "direction" : "centered",
+        "nu_perp_n" : 1e-3, # better higher => less fails?
+        "nu_perp_u" : 1e-3, # better higher => less fails?
         "nu_parallel_n" : 1e3
     },
     "elliptic":
@@ -137,12 +136,12 @@ inputfile = {
         "eps_pol" : [1e-6, 0.5, 0.5, 0.5, 0.5], # 0.5 prevents outliers on stage 0
         "eps_gamma" : 1e-8, # gamma inverts much faster than pol
         "eps_ampere" : 1e-8, # ampere inverts much faster than pol
-        "direction" : "forward", # centered can make oscillations
+        "direction" : "centered", # centered can make oscillations
         "jumpfactor" : 1.
     },
     "FCI":
     {
-        "refine" : [6,6], # 12 may be better for conservation than 6
+        "refine" : [12,12], # 12 may be better for conservation than 6
         "rk4eps" : 1e-6,
         "periodify" : False,
         "bc" : "along_field",
@@ -151,7 +150,7 @@ inputfile = {
     "physical":
     {
         "mu" : -0.00027244371074816386,
-        "tau" : tau,
+        "tau" : 1.0,
         "beta" : 1e-4,
         "resistivity" : 1e-4,
         "epsilon_D" : 4.1458919332419e-05,
@@ -178,9 +177,16 @@ inputfile = {
     "output" :
     {
         "type" : "netcdf",
-        "itstp" : 200,
+        "itstp" : 100,
         "maxout": 1000,
-        "compression": [1,1],
+        "compression": [2,2],
+        "fsa":
+        {
+            "n" : 3,
+            "Npsi" : 64,
+            "Neta" : 640,
+            "fx_0" : 0.125
+        },
         "equations":[
             "Basic",
             "Mass-conserv",
@@ -195,21 +201,30 @@ inputfile = {
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
-eps_map = { # resistivity -> [ epsilon_D , source_rate, deltaT, previous name]# [1ms]
-    3e-4: [2.3936318213431424e-05, 2e-4,    100], # 14667
-    1e-4: [4.1458919332419e-05,    1e-4,    100], # 19303
-    3e-5: [7.569328442972544e-05,  0.5e-4,  100], # 26082
-    1e-5: [0.00013110461385575586, 0.35e-4, 150], # 34326
-    3e-6: [0.00023936318237861086, 0.30e-4, 200], # 46382
-    1e-6: [0.0004145891932469323,  0.25e-4, 200]  # 61042
-}
-for key in  eps_map:
-    inputfile["physical"]["resistivity"] = key
-    inputfile["physical"]["epsilon_D"] =  eps_map[key][0]
-    inputfile["source"]["rate"] =  eps_map[key][1]
-    inputfile["timestepper"]["deltaT"] =  eps_map[key][2]
+#Tabular format for simulations:
+simulations = [
+    # tau, resistivity, epsilon_D , source_rate, deltaT]# [1ms]
+    [0, 3e-4, 2.3936318213431424e-05, 1.6e-4,  100], # 14667
+    [1, 3e-4, 2.3936318213431424e-05, 2.1e-4,  100], # 14667
+    [0, 1e-4, 4.1458919332419e-05,    0.7e-4,  100], # 19303
+    [1, 1e-4, 4.1458919332419e-05,    1e-4,    100], # 19303
+    [0, 3e-5, 7.569328442972544e-05,  0.4e-4,  150], # 26082
+    [1, 3e-5, 7.569328442972544e-05,  0.5e-4,  150], # 26082
+    [0, 1e-5, 0.00013110461385575586, 0.31e-4, 200], # 34326
+    [1, 1e-5, 0.00013110461385575586, 0.35e-4, 200], # 34326
+    [0, 3e-6, 0.00023936318237861086, 0.25e-4, 200], # 46382
+    [1, 3e-6, 0.00023936318237861086, 0.25e-4, 200], # 46382
+    [0, 1e-6, 0.0004145891932469323,  0.21e-4, 200], # 61042
+    [1, 1e-6, 0.0004145891932469323,  0.21e-4, 200]  # 61042
+]
+for values in  simulations:
+    inputfile["physical"]["tau"] = values[0]
+    inputfile["physical"]["resistivity"] = values[1]
+    inputfile["physical"]["epsilon_D"] =  values[2]
+    inputfile["source"]["rate"] =  values[3]
+    inputfile["timestepper"]["deltaT"] =  values[4]
     print( inputfile["physical"])
-    for i in range(0,6) : # set number of sims here
+    for i in range(0,3) : # set number of sims here
         if m.exists( inputfile,i) :
             print( "Simulation already run ", m.outfile( inputfile, i))
         else:

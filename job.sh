@@ -4,7 +4,7 @@
 #####SBATCH --gres=gpu:4
 #SBATCH --gpus-per-node=4
 #SBATCH --partition=m100_fua_prod
-#SBATCH --account=fuac6_tsvv3
+#SBATCH --account=fuac7_tsvv3
 #SBATCH --time=24:00:00 # 24 hours is maximum
 
 echo "Marconi 100 cluster with Tesla V100 GPUs"
