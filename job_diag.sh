@@ -1,6 +1,6 @@
+#!/bin/bash
 # submit (several times) with 
 # sbatch  -o diag.out -J diag job_diag.sh
-#!/bin/bash
 
 #SBATCH -N 1 
 #SBATCH --partition=m100_all_serial
