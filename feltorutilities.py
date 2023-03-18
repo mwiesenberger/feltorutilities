@@ -154,11 +154,11 @@ def viscosity_e( n_0, T_e, B_0, **kwargs) :
     return 0.37/resistivity(n_0, T_e, B_0)
 
 @task
-def viscosity_i( n_0, T_e, B_0, m_i, **kwargs) :
-    """ parallel ion viscosity: 0.69/resistivity(n_0, T_e, B_0)*np.sqrt( np.abs(mu(m_i))"""
+def viscosity_i( n_0, T_i, B_0, m_i, **kwargs) :
+    """ parallel ion viscosity: 0.69/resistivity(n_0, T_i, B_0)*np.sqrt( np.abs(mu(m_i))"""
     #return 0.96/np.sqrt( m_i)/cte.e**3/10* 12*np.pi**(3/2)*\
     #        cte.epsilon_0**2 * B_0 * (T_i*cte.eV)**(3/2) /(n_0*1e19)
-    return 0.69/resistivity(n_0, T_e, B_0)*np.sqrt( np.abs(mu(m_i)))
+    return 0.69/resistivity(n_0, T_i, B_0)*np.sqrt( np.abs(mu(m_i)))
 
 # Miscellaneous ( inverseaspectratio, q)
 @task
