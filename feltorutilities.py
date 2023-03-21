@@ -240,7 +240,7 @@ proton_mass   = cte.physical_constants["proton mass"][0]
 deuteron_mass = cte.physical_constants["deuteron mass"][0]
 triton_mass   = cte.physical_constants["triton mass"][0]
 
-def numerical2physical( numerical, physical):
+def numerical2physical( numerical, physical, verbose = False):
     """Invert numerical parameters to physical parameters
 
     There is a one-to-one map between the 6 physical parameters to the 6
@@ -248,6 +248,7 @@ def numerical2physical( numerical, physical):
 
     numerical (dict) : "epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"
     physical  (dict) : "R", "B_0", "T_e", "T_i", "n_0", "m_i"
+    verbose   (bool) : if True print information to output
 
     We have R in m, B_0 in T, T_e in eV, T_i in eV, n_0 in 1e19m^{-3} and m_i in kg
 
@@ -273,62 +274,64 @@ def numerical2physical( numerical, physical):
         if (not("beta" in numerical) or (numerical["beta"] == 0)):
             raise ValueError("beta must be present if epsilon_D is")
         def to_invert0( x,
-                       for_e_D,for_mu, for_tau, for_beta, for_eta, for_R_0) :
-            T_e, T_i, n_0, B_0, R = x
+                       for_e_D,for_mu, for_beta, for_eta, for_R_0) :
+            T_e, n_0, B_0, R = x
             m_i = -cte.m_e/for_mu
-            return (tau(T_e, T_i) - for_tau,
+            return (
                 (beta( n_0, T_e, B_0) - for_beta)/for_beta,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (epsilon_D( n_0, B_0, m_i) - for_e_D)/for_e_D,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
-        print( "Invert for given numerical parameters")
-        physical["T_e"], physical["T_i"], physical["n_0"], physical["B_0"], physical["R"]\
-        = opt.fsolve( to_invert0, [1,1,1,1,1],args=(
+        if verbose:
+            print( "Invert for given numerical parameters")
+        physical["T_e"], physical["n_0"], physical["B_0"], physical["R"]\
+        = opt.fsolve( to_invert0, [1,1,1,1],args=(
             numerical["epsilon_D"],numerical["mu"],numerical["tau"],
             numerical["beta"],numerical["resistivity"],numerical["R_0"]))
 
     elif (("beta" in numerical) and (numerical["beta"] != 0) ):
-        print( "Invert for given R")
+        if verbose :
+            print( "Invert for given R")
         def to_invert1( x, R,
-              for_mu, for_tau, for_beta, for_eta, for_R_0) :
-            T_e, T_i, n_0, B_0 = x
+              for_mu, for_beta, for_eta, for_R_0) :
+            T_e, n_0, B_0 = x
             m_i = -cte.m_e/for_mu
-            return (tau(T_e, T_i) - for_tau,
-                (beta( n_0, T_e, B_0) - for_beta)/for_beta,
+            return ( (beta( n_0, T_e, B_0) - for_beta)/for_beta,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
-        physical["T_e"], physical["T_i"], physical["n_0"], physical["B_0"]\
-        = opt.fsolve( to_invert1, [1,1,1,1],args=(
-            physical["R"],numerical["mu"],numerical["tau"],
+        physical["T_e"], physical["n_0"], physical["B_0"]\
+        = opt.fsolve( to_invert1, [1,1,1],args=(
+            physical["R"],numerical["mu"],
             numerical["beta"],numerical["resistivity"],numerical["R_0"]))
         numerical["epsilon_D"] = epsilon_D(physical["n_0"],
                                         physical["B_0"],
                                         physical["m_i"])
     else:
-        print( "Invert for given R and B_0")
+        if verbose :
+            print( "Invert for given R and B_0")
         if ((not "R" in physical) or (physical["R"] == 0) or
             (not "B_0" in physical) or (physical["B_0"] == 0)):
             raise ValueError ( "B_0 and R must be present in physical and be different from zero")
         def to_invert2( x, B_0, R,
-                  for_mu, for_tau, for_eta, for_R_0) :
-            T_e, T_i, n_0 = x
+                  for_mu, for_eta, for_R_0) :
+            T_e, n_0 = x
             m_i = -cte.m_e/for_mu
-            return (tau(T_e, T_i) - for_tau,
-                (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
+            return ( (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
-        physical["T_e"], physical["T_i"], physical["n_0"]\
-        = opt.fsolve( to_invert2, [1,1,1],args=(
+        physical["T_e"], physical["n_0"]\
+        = opt.fsolve( to_invert2, [1,1],args=(
             physical["B_0"],physical["R"],numerical["mu"],
-            numerical["tau"],numerical["resistivity"],numerical["R_0"]))
+            numerical["resistivity"],numerical["R_0"]))
         numerical["beta"] = beta( physical["n_0"],
                                     physical["T_e"],
                                     physical["B_0"])
         numerical["epsilon_D"] = epsilon_D(physical["n_0"],
                                         physical["B_0"],
                                         physical["m_i"])
+    physical["T_i"] = numerical["tau"]*physical["T_e"]
 
 def quantities() :
     """ A List of all available quantities """
