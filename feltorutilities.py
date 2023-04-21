@@ -287,7 +287,7 @@ def numerical2physical( numerical, physical, verbose = False):
             print( "Invert for given numerical parameters")
         physical["T_e"], physical["n_0"], physical["B_0"], physical["R"]\
         = opt.fsolve( to_invert0, [1,1,1,1],args=(
-            numerical["epsilon_D"],numerical["mu"],numerical["tau"],
+            numerical["epsilon_D"],numerical["mu"],
             numerical["beta"],numerical["resistivity"],numerical["R_0"]))
 
     elif (("beta" in numerical) and (numerical["beta"] != 0) ):
