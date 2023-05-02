@@ -5,7 +5,7 @@ import json
 from netCDF4 import Dataset
 import simplesimdb as simplesim
 
-data = simplesim.Manager( directory="/m100_scratch/userexternal/mwiesenb/feltor3d_centered", filetype = "nc")
+data = simplesim.Manager( directory="/m100_scratch/userexternal/mwiesenb/feltor3d", filetype = "nc")
 diag = simplesim.Manager( 
     executable="./feltordiag.sh",
     directory="/m100_scratch/userexternal/mwiesenb/diag",
@@ -31,7 +31,6 @@ config = {
             "ifs_lcfs",
             "ifs_norm"
         ],
-        "flags": ["copy-fsa"],
         # for interpolate in 3d
         "fine-grid-factor" : 2,
         "cta-interpolation" : "dg",

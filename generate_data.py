@@ -125,10 +125,10 @@ inputfile = {
     "regularization" :
     {
         "order" : 2,
-        "direction" : "centered",
-        "nu_perp_n" : 1e-3, # better higher => less fails?
-        "nu_perp_u" : 1e-3, # better higher => less fails?
-        "nu_parallel_n" : 1e3
+        "direction" : "centered", # forward makes a weird instability
+        "nu_perp_n" : 1e-3,
+        "nu_perp_u" : 1e-3,
+        "nu_parallel_n" : 5e2
     },
     "elliptic":
     {
@@ -136,7 +136,7 @@ inputfile = {
         "eps_pol" : [1e-6, 0.5, 0.5, 0.5, 0.5], # 0.5 prevents outliers on stage 0
         "eps_gamma" : 1e-8, # gamma inverts much faster than pol
         "eps_ampere" : 1e-8, # ampere inverts much faster than pol
-        "direction" : "centered", # centered can make oscillations
+        "direction" : "forward", # centered can make oscillations
         "jumpfactor" : 1.
     },
     "FCI":
@@ -160,12 +160,6 @@ inputfile = {
     },
     "timestepper":
     {
-        #"type" : "multistep-imex",
-        #"tableau" : "ImEx-TVB-3-3",
-        ##"dt" : 0.1,
-        #"dt" : 0.02,
-        #"eps_time" : 1e-8
-        #"type" : "adaptive",
         "tableau" : "Bogacki-Shampine-4-2-3",
         "type" : "adaptive",
         "rtol": 1e-5,
@@ -178,15 +172,8 @@ inputfile = {
     {
         "type" : "netcdf",
         "itstp" : 100,
-        "maxout": 1000,
+        "maxout": 100,
         "compression": [2,2],
-        "fsa":
-        {
-            "n" : 3,
-            "Npsi" : 64,
-            "Neta" : 640,
-            "fx_0" : 0.125
-        },
         "equations":[
             "Basic",
             "Mass-conserv",
@@ -201,21 +188,22 @@ inputfile = {
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
 
+# nu_perp = 1e-3 is at the edge of the CFL condition for the velocity upwind correction
 #Tabular format for simulations:
 simulations = [
-    # tau, resistivity, epsilon_D , source_rate, deltaT]# [1ms]
-    [0, 3e-4, 2.3936318213431424e-05, 1.6e-4,  100], # 14667
-    [1, 3e-4, 2.3936318213431424e-05, 2.1e-4,  100], # 14667
-    [0, 1e-4, 4.1458919332419e-05,    0.7e-4,  100], # 19303
-    [1, 1e-4, 4.1458919332419e-05,    1e-4,    100], # 19303
-    [0, 3e-5, 7.569328442972544e-05,  0.4e-4,  150], # 26082
-    [1, 3e-5, 7.569328442972544e-05,  0.5e-4,  150], # 26082
-    [0, 1e-5, 0.00013110461385575586, 0.31e-4, 200], # 34326
-    [1, 1e-5, 0.00013110461385575586, 0.35e-4, 200], # 34326
-    [0, 3e-6, 0.00023936318237861086, 0.25e-4, 200], # 46382
-    [1, 3e-6, 0.00023936318237861086, 0.25e-4, 200], # 46382
-    [0, 1e-6, 0.0004145891932469323,  0.21e-4, 200], # 61042
-    [1, 1e-6, 0.0004145891932469323,  0.21e-4, 200]  # 61042
+    # tau(0), resistivity(1), epsilon_D(2) , source_rate(3), deltaT(4), nu_e(5), nu_i(6), nu_p(7), nu_n(8), direction]# [1ms]
+    #[0, 3e-4, 2.3936318213431424e-05, 1.6e-4,  100, 1233,  114, 1e-3,  5e2, "forward"], # 14700
+    #[1, 3e-4, 2.3936318213431424e-05, 2e-4,    100, 1233,  114, 2e-3, 10e2, "forward"], # 14700
+    #[0, 1e-4, 4.1458919332419e-05,    0.7e-4,  100, 3700,  114, 1e-3,  5e2, "forward"], # 19300
+    #[1, 1e-4, 4.1458919332419e-05,    1e-4,    100, 3700,  114, 1e-3,  5e2, "forward"], # 19300
+    #[0, 3e-5, 7.569328442972544e-05,  0.5e-4,  100, 3700,  114, 2e-3, 10e2, "forward"], # 26100
+    #[1, 3e-5, 7.569328442972544e-05,  0.5e-4,  100, 3700,  381, 1e-3,  5e2, "forward"], # 26100
+    #[0, 1e-5, 0.00013110461385575586, 0.35e-4, 150, 3700,  114, 1e-3,  5e2, "forward"], # 34300
+    #[1, 1e-5, 0.00013110461385575586, 0.35e-4, 150, 3700, 1143, 1.5e-3, 7.5e2, "forward"], # 34300
+    #[0, 3e-6, 0.00023936318237861086, 0.30e-4, 200, 3700,  114, 1e-3,  5e2, "forward"], # 46400
+    #[1, 3e-6, 0.00023936318237861086, 0.30e-4, 200, 3700, 3700, 1e-3, 10e2,"centered"], # 46400
+    #[0, 1e-6, 0.0004145891932469323,  0.25e-4, 200, 3700,  114, 1e-3,  5e2], # 61000
+    [1, 1e-6, 0.0004145891932469323,  0.25e-4, 200, 3700, 3700, 1e-3, 10e2,"centered"]  # 61000
 ]
 for values in  simulations:
     inputfile["physical"]["tau"] = values[0]
@@ -223,8 +211,13 @@ for values in  simulations:
     inputfile["physical"]["epsilon_D"] =  values[2]
     inputfile["source"]["rate"] =  values[3]
     inputfile["timestepper"]["deltaT"] =  values[4]
+    inputfile["physical"]["nu_parallel"] =  [values[5], values[6]]
+    inputfile["regularization"]["nu_perp_n"] = values[7]
+    inputfile["regularization"]["nu_perp_u"] = values[7]
+    inputfile["regularization"]["nu_parallel_n"] = values[8]
+    inputfile["regularization"]["direction"] = values[9]
     print( inputfile["physical"])
-    for i in range(0,3) : # set number of sims here
+    for i in range(0,7) : # set number of sims here
         if m.exists( inputfile,i) :
             print( "Simulation already run ", m.outfile( inputfile, i))
         else:

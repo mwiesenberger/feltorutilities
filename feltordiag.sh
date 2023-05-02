@@ -6,7 +6,7 @@
 
 make -C $FELTOR_PATH/src/feltor/ feltordiag device=omp
 
-input=$(echo $2 | sed -e 's/diag/feltor3d_centered/')
+input=$(echo $2 | sed -e 's/diag/feltor3d/')
 
 $FELTOR_PATH/src/feltor/feltordiag "config.json" $input $2
 
