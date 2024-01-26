@@ -274,21 +274,27 @@ def numerical2physical( numerical, physical, verbose = False):
         if (not("beta" in numerical) or (numerical["beta"] == 0)):
             raise ValueError("beta must be present if epsilon_D is")
         def to_invert0( x,
-                       for_e_D,for_mu, for_beta, for_eta, for_R_0) :
-            T_e, n_0, B_0, R = x
+                       for_e_D,for_mu, for_beta, for_eta) :
+            T_e, n_0, B_0 = x
             m_i = -cte.m_e/for_mu
             return (
                 (beta( n_0, T_e, B_0) - for_beta)/for_beta,
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (epsilon_D( n_0, B_0, m_i) - for_e_D)/for_e_D,
-                (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
+                #(R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
         if verbose:
             print( "Invert for given numerical parameters")
-        physical["T_e"], physical["n_0"], physical["B_0"], physical["R"]\
-        = opt.fsolve( to_invert0, [1,1,1,1],args=(
+        x, infodict, ier, mesg\
+        = opt.fsolve( to_invert0, [1,1,1],args=(
             numerical["epsilon_D"],numerical["mu"],
-            numerical["beta"],numerical["resistivity"],numerical["R_0"]))
+            numerical["beta"],numerical["resistivity"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"], physical["B_0"] = x
+        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"], physical["m_i"], physical["T_e"])
+        if ier != 1:
+            raise ValueError( mesg)
 
     elif (("beta" in numerical) and (numerical["beta"] != 0) ):
         if verbose :
@@ -301,14 +307,19 @@ def numerical2physical( numerical, physical, verbose = False):
                 (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
-        physical["T_e"], physical["n_0"], physical["B_0"]\
+        x, infodict, ier, mesg\
         = opt.fsolve( to_invert1, [1,1,1],args=(
             physical["R"],numerical["mu"],
-            numerical["beta"],numerical["resistivity"],numerical["R_0"]))
+            numerical["beta"],numerical["resistivity"],numerical["R_0"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"], physical["B_0"] = x
         numerical["epsilon_D"] = epsilon_D(physical["n_0"],
                                         physical["B_0"],
                                         physical["m_i"])
-    else:
+        if ier != 1:
+            raise ValueError( mesg)
+    else :
         if verbose :
             print( "Invert for given R and B_0")
         if ((not "R" in physical) or (physical["R"] == 0) or
@@ -321,16 +332,21 @@ def numerical2physical( numerical, physical, verbose = False):
             return ( (resistivity(n_0, T_e, B_0) - for_eta)/for_eta,
                 (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
                )
-        physical["T_e"], physical["n_0"]\
+        x, infodict, ier, mesg\
         = opt.fsolve( to_invert2, [1,1],args=(
             physical["B_0"],physical["R"],numerical["mu"],
-            numerical["resistivity"],numerical["R_0"]))
+            numerical["resistivity"],numerical["R_0"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"] = x
         numerical["beta"] = beta( physical["n_0"],
                                     physical["T_e"],
                                     physical["B_0"])
         numerical["epsilon_D"] = epsilon_D(physical["n_0"],
                                         physical["B_0"],
                                         physical["m_i"])
+        if ier != 1:
+            raise ValueError( mesg)
     physical["T_i"] = numerical["tau"]*physical["T_e"]
 
 def quantities() :

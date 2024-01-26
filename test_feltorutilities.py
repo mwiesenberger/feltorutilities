@@ -35,3 +35,28 @@ physical["scaleR"] = 1.2
 physical["Nz"] = 32
 print( table_list)
 print( fp.parameters2quantities( physical, table_list ))
+
+print( "COMPASS TEST")
+physicals=list()
+for res in np.sort([3e-4,1e-4,3e-5,1e-5,3e-6,1e-6]):
+    params = {"name" : "COMPASS",
+    "beta" : 1e-4, "resistivity": res, #change both to change n_0
+    "tau" : 1, "m_i" : fp.deuteron_mass, "R_0" : 545, "R": 0.545,
+    "a": 0.175, "q":2, "scaleR" : 1.45, "Nz" : 32}
+    physical = {"m_i" : fp.deuteron_mass,  "R": 0.545, "a": 0.175, "q":2, "scaleR" : 1.45, "Nz" : 32 }
+    fp.numerical2physical( params, physical)
+    physicals.append(physical)
+print(physicals[0])
+# numerical parameters that only differ by eps are the same
+test = list()
+epsilon_D = fp.epsilon_D(**physicals[0])
+print( "epsilon_D is ", epsilon_D)
+#for epsilon in [0.1*epsilon_D, epsilon_D]:
+params = {"name" : "COMPASS",
+"beta" : 1e-4, "resistivity": 1e-6, #change both to change n_0
+"tau" : 1, "R_0" : 545, "epsilon_D": epsilon_D,
+"a": 0.175, "q":2, "scaleR" : 1.45, "Nz" : 32}
+physical = {"m_i" : fp.deuteron_mass}
+fp.numerical2physical( params, physical, verbose=True)
+test.append(physical)
+print(fp.epsilon_D( **physical))
