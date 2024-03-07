@@ -1,0 +1,5 @@
+.eggs
+.ipynb_checkpoints
+__pycache__
+build
+feltorutilities.egg-info
