@@ -4,8 +4,8 @@ The goal of this package is to provide utilities for the setup and run
  of 3d feltor simulations.
 
 It consists of
- - The python module `feltorutilities` contains parameter functions and methods to
-convert from physical to numerical parameters and back.
+ - a Python module `feltorutilities` containing parameter functions and utilities to
+convert from dimensional to dimensionless parameters and back.
  - Jupyter notebooks guiding the generation of suitable input parameters for both the feltor and the thermal feltor codes.
 
 
@@ -56,9 +56,9 @@ parameters = {"B_0" : 0.7, "m_i" : fp.deuteron_mass, "T_e" : 0.07}
 values = parameters2quantities( parameters, ["rho_s", "c_s", "omega_0_inv"])
 ```
 
-#### Invert numerical parameters
-Second we provide a utility function that inverts given numerical parameters
-back to the corresponding physical ones. This is useful in analysing
+#### Invert dimensionless parameters
+Second we provide a utility function that inverts given numerical (dimensionless) parameters
+back to the corresponding physical (dimensional) ones. This is useful in analysing
 simulation data where only the numerical values are stored.
 For example:
 ```python
