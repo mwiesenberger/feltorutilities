@@ -1,6 +1,6 @@
 #!/bin/bash
 
-: ${FELTOR_PATH:="../feltor"}
+: ${FELTOR_PATH:="../../feltor"}
 # If feltor is not here then change the FELTOR_PATH enviromnent variable
 # export FELTOR_PATH="path/to/feltor"
 

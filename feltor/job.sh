@@ -15,7 +15,7 @@ module list
 spack find jsoncpp
 echo "$@"
 
-: ${FELTOR_PATH:="../feltor"}
+: ${FELTOR_PATH:="../../feltor"}
 
 # $@ forwards all arguments
 echo "1 1 16" | mpirun -n 16 $FELTOR_PATH/src/feltor/feltor_mpi "$@"
