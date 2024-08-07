@@ -121,6 +121,11 @@ def mu ( m_i, **kwargs) : # proton mass, deuteron mass, triton mass
     return -cte.m_e/ m_i
 
 @task
+def mue ( m_i, **kwargs) : # proton mass, deuteron mass, triton mass
+    """ positive electron to ion mass ratio; m_i in kg"""
+    return cte.m_e/ m_i
+
+@task
 def tau ( T_e, T_i, **kwargs) :
     """ ion to electron temperature ratio; T_e in eV, T_i in eV"""
     return T_i / T_e
@@ -132,9 +137,15 @@ def beta( n_0, T_e, B_0, **kwargs) :
 
 @task
 def resistivity( n_0, T_e, B_0, **kwargs):
-    """plasma resistivity; n_0 in 1e19m^-3, T_e in eV, B_0 in T"""
-    return 0.51*np.sqrt( 2*cte.m_e)*cte.e**3*10/ 12/np.pi**(3/2)/\
-            cte.epsilon_0**2 * n_0*1e19 / B_0 / (T_e*cte.eV)**(3/2)
+    """plasma resistivity = 0.51 collisionality( n_0, T_e, m_e, B_0); n_0 in 1e19m^-3, T_e in eV, B_0 in T"""
+    return 0.51*collisionality( n_0, T_e, cte.m_e, B_0)
+
+@task
+def collisionality( n_0, T_e, m_i, B_0, **kwargs):
+    """Reference collisionality; n_0 in 1e19m^-3, T_e in eV, m_i in kg, B_0 in T"""
+    return np.sqrt( 2*m_i)*cte.e**3*10/ 12/np.pi**(3/2)/\
+            cte.epsilon_0**2 * n_0*1e19 / B_0 / (np.fabs(T_e)*cte.eV)**(3/2)
+# the np.fabs fixes a warning about invalid scalar powers in case T_e becomes negative during iterations
 
 @task
 def R_0 ( B_0, m_i, T_e, R, **kwargs) :
@@ -240,8 +251,9 @@ proton_mass   = cte.physical_constants["proton mass"][0]
 deuteron_mass = cte.physical_constants["deuteron mass"][0]
 triton_mass   = cte.physical_constants["triton mass"][0]
 
-def numerical2physical( numerical, physical, verbose = False):
-    """Invert numerical parameters to physical parameters
+
+def numerical2physical_feltor( numerical, physical, verbose = False):
+    """Invert Feltor numerical parameters to physical parameters
 
     There is a one-to-one map between the 6 physical parameters to the 6
     numerical parameters:
@@ -348,6 +360,122 @@ def numerical2physical( numerical, physical, verbose = False):
         if ier != 1:
             raise ValueError( mesg)
     physical["T_i"] = numerical["tau"]*physical["T_e"]
+
+def numerical2physical_thermal( numerical, physical, verbose = False):
+    """Invert thermal feltor numerical parameters to physical parameters
+
+    There is a one-to-one map between the 5 physical parameters to the 5
+    numerical parameters:
+
+    numerical (dict) : "epsilon_D", "collisionality", "mue", "R_0", "beta"
+    physical  (dict) : "R", "B_0", "T_e", "n_0", "m_i"
+    verbose   (bool) : if True print information to output
+
+    We have R in m, B_0 in T, T_e in eV, n_0 in 1e19m^{-3} and m_i in kg
+
+    The numerical parameters can be computed from the physical ones using
+    parameters2quantities( physical, ["epsilon_D", "collisionality", "mue", "R_0", "beta"])
+
+    The inverse can be computed if
+     - All 5 numerical parameters are present
+     - "mue" can be absent from numerical if "m_i" is present in physical
+     - "epsilon_D" can be absent from numerical if "R" is present in physical
+     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are present in physical
+    On return numerical will contain all numerical and physical will contain all physical parameters
+    numerical and physical can be the same dictionary
+
+    """
+
+    if "mue" in numerical :
+        physical["m_i"] = cte.m_e/numerical["mue"]
+    else :
+        numerical["mue"] = cte.m_e/physical["m_i"]
+
+    if ( ("epsilon_D" in numerical) and (numerical["epsilon_D"] != 0) ) :
+        if (not("beta" in numerical) or (numerical["beta"] == 0)):
+            raise ValueError("beta must be present if epsilon_D is")
+        def to_invert0( x,
+                       for_e_D,for_mue, for_beta, for_nu) :
+            T_e, n_0, B_0 = x
+            m_i = cte.m_e/for_mue
+            return (
+                (beta( n_0, T_e, B_0) - for_beta)/for_beta,
+                (collisionality(n_0, T_e, m_i, B_0) - for_nu)/for_nu,
+                (epsilon_D( n_0, B_0, m_i) - for_e_D)/for_e_D,
+               )
+        if verbose:
+            print( "Invert for given numerical parameters")
+        x, infodict, ier, mesg\
+        = opt.fsolve( to_invert0, [1,1,1],args=(
+            numerical["epsilon_D"],numerical["mue"],
+            numerical["beta"],numerical["collisionality"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"], physical["B_0"] = x
+        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"], physical["m_i"], physical["T_e"])
+        if ier != 1:
+            raise ValueError( mesg)
+
+    elif (("beta" in numerical) and (numerical["beta"] != 0) ):
+        if verbose :
+            print( "Invert for given R")
+        def to_invert1( x, R,
+              for_mue, for_beta, for_nu, for_R_0) :
+            T_e, n_0, B_0 = x
+            m_i = cte.m_e/for_mue
+            return ( (beta( n_0, T_e, B_0) - for_beta)/for_beta,
+                (collisionality(n_0, T_e, m_i, B_0) - for_nu)/for_nu,
+                (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
+               )
+        x, infodict, ier, mesg\
+        = opt.fsolve( to_invert1, [1,1,1],args=(
+            physical["R"],numerical["mue"],
+            numerical["beta"],numerical["collisionality"],numerical["R_0"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"], physical["B_0"] = x
+        numerical["epsilon_D"] = epsilon_D(physical["n_0"],
+                                        physical["B_0"],
+                                        physical["m_i"])
+        if ier != 1:
+            raise ValueError( mesg)
+    else :
+        if verbose :
+            print( "Invert for given R and B_0")
+        if ((not "R" in physical) or (physical["R"] == 0) or
+            (not "B_0" in physical) or (physical["B_0"] == 0)):
+            raise ValueError ( "B_0 and R must be present in physical and be different from zero")
+        def to_invert2( x, B_0, R,
+                  for_mue, for_nu, for_R_0) :
+            T_e, n_0 = x
+            m_i = cte.m_e/for_mue
+            return ( (collisionality(n_0, T_e, m_i, B_0) - for_nu)/for_nu,
+                (R_0(B_0, m_i,T_e, R) - for_R_0)/for_R_0
+               )
+        x, infodict, ier, mesg\
+        = opt.fsolve( to_invert2, [1,1],args=(
+            physical["B_0"],physical["R"],numerical["mue"],
+            numerical["collisionality"],numerical["R_0"]), full_output = True)
+        if verbose:
+            print(x, infodict, ier, mesg)
+        physical["T_e"], physical["n_0"] = x
+        numerical["beta"] = beta( physical["n_0"],
+                                    physical["T_e"],
+                                    physical["B_0"])
+        numerical["epsilon_D"] = epsilon_D(physical["n_0"],
+                                        physical["B_0"],
+                                        physical["m_i"])
+        if ier != 1:
+            raise ValueError( mesg)
+
+
+def numerical2physical( numerical, physical, verbose = False):
+    """ Recognize numerical parameters and call correct function *_feltor or *_thermal"""
+    if "resistivity" in numerical:
+        numerical2physical_feltor( numerical, physical, verbose)
+    elif "collisionality" in numerical:
+        numerical2physical_thermal( numerical, physical, verbose)
+
 
 def quantities() :
     """ A List of all available quantities """
