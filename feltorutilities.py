@@ -1,41 +1,5 @@
 """Utilities for the setup of simulation parameters in Feltor
 
-################ PLASMA FORMULARY
-First, a list of plasma formulas is provided. These functions can be called as
-
-import feltorutilities as fp
-fp.rho_s( B_0, m_i, T_e)
-# or
-fp.rho_s( **parameters)
-
-where parameters is a dictionary that contains at least (in this case) "B_0",
-"m_i" and "T_e"
-To get a list of available functions type
-
-function_names = fp.quantities()
-
-A utility function is provided that lets you compute a collection of quantities
-from given parameters at once, e.g.
-
-values = parameters2quantities( params, ["rho_s", "c_s", "omega_0_inv"])
-
-################ INVERT NUMERICAL PARAMETERS
-Second we provide a utility function that inverts given numerical parameters
-back to the corresponding physical ones. This is useful in analysing
-simulation data where only the numerical values are stored
-Use as
-numerical2physical( numerical, physical)
-
-################ CREATE DEFAULT PARAMETERS
-Last, we have two functions that generate default parameters for a feltor
-calibration:
-
-load_default_config()
-
-and a feltordiag run:
-
-load_calibration_default()
-
 """
 import numpy as np
 import scipy.constants as cte
@@ -514,8 +478,12 @@ def parameters2quantities( parameters, quantities) :
         myList.append( parameters2quantity( parameters, quantity))
     return myList
 
+# I think these should be deprecated only calibrate.ipynb uses them and that
+# can be replaced by dg.geo
 def load_calibration_default():
-    """ generate default feltor input parameters for calibration"""
+    """ generate default feltor input parameters for calibration
+    WARNING: MAY BE DEPRECATED IN THE FUTURE
+    """
     inputfile= {
         "grid":
         {
