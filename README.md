@@ -70,9 +70,9 @@ numerical2physical( numerical, physical)
 This package contains two folders `feltor` and `thermal` that are intended to serve as templates to start your own project for the corresponding feltor codes.
 In order to setup a Feltor simulation you need to
  - First, decide if you want to run a isothermal, 2-species Feltor simulation  or a thermal, multispecies simulation. In the first case copy the `feltor` folder to a new repository, in the second one use the `thermal` folder
- - If necessary adapt the `FELTOR_PATH` variable to the feltor C++ repository as described above in all `*.sh` files.
+ - If necessary adapt the `FELTOR_PATH` variable to the feltor C++ repository as described above in all `*.sh` files. The explanation for the structure of these files can be found in the `simplesimdb` package.
  - Run the jupyter notebook in the folder and follow the instructions in the file
- - Once you generated satisfactory input parameters, either manually copy them or load them in the `generate_data.py` script. The idea for this script is to automatically generate submit scripts on a HPC cluster such that the simulation is automatically restarted if necessary and/or parameter studies are possible.
+ - Once you generated satisfactory input parameters, either manually copy them or load them in the `generate_data.py` script. The idea for this script is to use the `simplesimdb` package to automatically generate submit scripts on a HPC cluster such that the simulation is automatically restarted if necessary and/or parameter studies are possible.
 
 ## Author
 Matthias Wiesenberger

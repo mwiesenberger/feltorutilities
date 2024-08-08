@@ -102,7 +102,8 @@ def beta( n_0, T_e, B_0, **kwargs) :
 @task
 def resistivity( n_0, T_e, B_0, **kwargs):
     """plasma resistivity = 0.51 collisionality( n_0, T_e, m_e, B_0); n_0 in 1e19m^-3, T_e in eV, B_0 in T"""
-    return 0.51*collisionality( n_0, T_e, cte.m_e, B_0)
+    return 0.51*np.sqrt( 2*cte.m_e)*cte.e**3*10/ 12/np.pi**(3/2)/\
+            cte.epsilon_0**2 * n_0*1e19 / B_0 / (np.fabs(T_e)*cte.eV)**(3/2)
 
 @task
 def collisionality( n_0, T_e, m_i, B_0, **kwargs):
@@ -433,6 +434,7 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
             raise ValueError( mesg)
 
 
+# Should this have a code parameter?
 def numerical2physical( numerical, physical, verbose = False):
     """ Recognize numerical parameters and call correct function *_feltor or *_thermal"""
     if "resistivity" in numerical:
@@ -478,11 +480,11 @@ def parameters2quantities( parameters, quantities) :
         myList.append( parameters2quantity( parameters, quantity))
     return myList
 
-# I think these should be deprecated only calibrate.ipynb uses them and that
-# can be replaced by dg.geo
-def load_calibration_default():
+def load_calibration_default( code = "feltor"):
     """ generate default feltor input parameters for calibration
-    WARNING: MAY BE DEPRECATED IN THE FUTURE
+
+    code (String): "feltor" or "thermal"; for which code to generate the parameters
+
     """
     inputfile= {
         "grid":
@@ -634,7 +636,7 @@ def load_calibration_default():
             },
             "sheath":
             {
-                "type": "bohm",
+                "type": "insulating",
                 "boundary": 0.09375, # 3/32
                 "alpha": 0.0625, # 2/32
                 "penalization" : 1e+0,
@@ -657,6 +659,14 @@ def load_calibration_default():
             "input" : "params",
         }
     }
+    if code == "feltor":
+        return inputfile
+    if code == "thermal":
+        inputfile["boundary"]["wall"]["nwall"] = [0.2,0.2]
+        inputfile["boundary"]["wall"]["twall"] = 0.1
+        inputfile["boundary"]["wall"]["qwall"] = 0.
+        inputfile["boundary"]["bc"]["temperature"] = ["NEU", "NEU"],
+        inputfile["boundary"]["bc"]["heat-flux"] = ["NEU", "NEU"],
     return inputfile
 
 def load_default_config ():
