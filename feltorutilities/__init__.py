@@ -5,6 +5,14 @@ import numpy as np
 import scipy.constants as cte
 import scipy.optimize as opt
 
+# With this idiom users can ask for __version__ string after import
+# https://setuptools-scm.readthedocs.io/en/latest/usage/#semantic-versioning-semver
+from contextlib import suppress
+from importlib.metadata import PackageNotFoundError, version
+
+with suppress(PackageNotFoundError):
+    __version__ = version(__package__)
+
 """ Dictionary containing function-name : function pairs """
 tasks = {}
 # design copied from stackoverflow
