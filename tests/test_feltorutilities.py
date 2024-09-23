@@ -1,5 +1,6 @@
-import feltorutilities as fp
 import numpy as np
+
+import feltorutilities as fp
 
 #run with pytest -s .
 
@@ -28,7 +29,8 @@ def test_elemental_functions():
 def test_thermal_conversion():
     print( "TEST THERMAL CONVERSION")
     physical = {"R" : 0.6}
-    numerical = {"mue" : 2.72e-4,"beta":4.11e-4,"collisionality" : 4.52e-3,"R_0" : 91.94}
+    numerical = {"mue" : 2.72e-4,"beta":4.11e-4,"collisionality" :
+        4.52e-3,"R_0" : 91.94}
     fp.numerical2physical( numerical, physical, verbose=True)
     assert( np.abs(physical["R"] - R)/R < 1e-2)
     assert( np.abs(physical["m_i"] - m_i)/m_i < 1e-2)
@@ -62,7 +64,8 @@ def test_thermal_conversion():
 def test_feltor_conversion():
     print( "TEST THERMAL CONVERSION")
     physical = {"R" : 0.6}
-    numerical = {"mu" : -2.72e-4,"tau":1,"beta":4.11e-4,"resistivity" : 3.81e-5,"R_0" : 91.94}
+    numerical = {"mu" : -2.72e-4,"tau":1,"beta":4.11e-4,"resistivity" :
+        3.81e-5,"R_0" : 91.94}
     fp.numerical2physical( numerical, physical, verbose=True)
     #print( physical)
     #print( "Should be: ", R, m_i, T_e, n_0, B_0)
@@ -102,7 +105,8 @@ def test_list_parameters():
     print()
     print( "TETS LIST EVALUATION")
     physical = {"a" : 0.15, "q" : 2, "scaleR" : 1.2, "Nz": 32,
-        "n_0": 0.1, "B_0" : 0.07, "m_i" : fp.deuteron_mass, "T_e" : 10, "T_i": 10, "R": 0.6}
+        "n_0": 0.1, "B_0" : 0.07, "m_i" : fp.deuteron_mass, "T_e" : 10, "T_i":
+        10, "R": 0.6}
     table_list = fp.quantities()
     print( table_list)
     print( fp.parameters2quantities( physical, table_list ))
@@ -112,20 +116,21 @@ def test_compass():
 #not sure what the test is here...
 
     print( "COMPASS TEST")
-    physicals=list()
+    physicals=[]
     for res in np.sort([3e-4,1e-4,3e-5,1e-5,3e-6,1e-6]):
         params = {"name" : "COMPASS",
         "beta" : 1e-4, "resistivity": res, #change both to change n_0
         "tau" : 1, "m_i" : fp.deuteron_mass, "R_0" : 545, "R": 0.545,
         "a": 0.175, "q":2, "scaleR" : 1.45, "Nz" : 32}
-        physical = {"m_i" : fp.deuteron_mass,  "R": 0.545, "a": 0.175, "q":2, "scaleR" : 1.45, "Nz" : 32 }
+        physical = {"m_i" : fp.deuteron_mass,  "R": 0.545, "a": 0.175, "q":2,
+        "scaleR" : 1.45, "Nz" : 32 }
         fp.numerical2physical( params, physical)
         physicals.append(physical)
 
     #print(physicals[0])
     print()
     # numerical parameters that only differ by eps are the same
-    test = list()
+    test = []
     epsilon_D = fp.epsilon_D(**physicals[0])
     print( "epsilon_D is ", epsilon_D)
     #for epsilon in [0.1*epsilon_D, epsilon_D]:

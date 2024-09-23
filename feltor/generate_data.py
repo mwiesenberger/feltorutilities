@@ -1,8 +1,7 @@
 import json
-import simplesimdb as simplesim
-import magneticfielddb as mag
-import numpy as np
 
+import magneticfielddb as mag
+import simplesimdb as simplesim
 
 # select magnetic field and R_0
 params = mag.select( "COMPASS/compass_1X.json")

@@ -2,11 +2,11 @@
 # and feltordiag creates the netcdf file at program start almost instantly
 
 import json
-from netCDF4 import Dataset
+
 import simplesimdb as simplesim
 
 data = simplesim.Manager( directory="/m100_scratch/userexternal/mwiesenb/feltor3d", filetype = "nc")
-diag = simplesim.Manager( 
+diag = simplesim.Manager(
     executable="./feltordiag.sh",
     directory="/m100_scratch/userexternal/mwiesenb/diag",
     filetype = "nc")

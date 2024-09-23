@@ -1,14 +1,14 @@
 """Utilities for the setup of simulation parameters in Feltor
 
 """
-import numpy as np
-import scipy.constants as cte
-import scipy.optimize as opt
-
 # With this idiom users can ask for __version__ string after import
 # https://setuptools-scm.readthedocs.io/en/latest/usage/#semantic-versioning-semver
 from contextlib import suppress
 from importlib.metadata import PackageNotFoundError, version
+
+import numpy as np
+import scipy.constants as cte
+import scipy.optimize as opt
 
 with suppress(PackageNotFoundError):
     __version__ = version(__package__)
@@ -17,7 +17,8 @@ with suppress(PackageNotFoundError):
 tasks = {}
 # design copied from stackoverflow
 # https://stackoverflow.com/questions/9168340/using-a-dictionary-to-select-function-to-execute
-task = lambda f: tasks.setdefault( f.__name__, f)
+def task( f):
+    return tasks.setdefault( f.__name__, f)
 
 #WE PASS **kwargs TO ALL FUNCTIONS SO THAT WE CAN CALL ALL WITH DICTIONARIES
 
@@ -109,25 +110,30 @@ def beta( n_0, T_e, B_0, **kwargs) :
 
 @task
 def resistivity( n_0, T_e, B_0, **kwargs):
-    """plasma resistivity = 0.51 collisionality( n_0, T_e, m_e, B_0); n_0 in 1e19m^-3, T_e in eV, B_0 in T"""
+    """plasma resistivity = 0.51 collisionality( n_0, T_e, m_e, B_0); n_0 in
+    1e19m^-3, T_e in eV, B_0 in T"""
     return 0.51*np.sqrt( 2*cte.m_e)*cte.e**3*10/ 12/np.pi**(3/2)/\
             cte.epsilon_0**2 * n_0*1e19 / B_0 / (np.fabs(T_e)*cte.eV)**(3/2)
 
 @task
 def collisionality( n_0, T_e, m_i, B_0, **kwargs):
-    """Reference collisionality; n_0 in 1e19m^-3, T_e in eV, m_i in kg, B_0 in T"""
+    """Reference collisionality; n_0 in 1e19m^-3, T_e in eV, m_i in kg, B_0 in
+    T"""
     return np.sqrt( 2*m_i)*cte.e**3*10/ 12/np.pi**(3/2)/\
             cte.epsilon_0**2 * n_0*1e19 / B_0 / (np.fabs(T_e)*cte.eV)**(3/2)
-# the np.fabs fixes a warning about invalid scalar powers in case T_e becomes negative during iterations
+# the np.fabs fixes a warning about invalid scalar powers in case T_e becomes
+# negative during iterations
 
 @task
 def R_0 ( B_0, m_i, T_e, R, **kwargs) :
-    """machine radius relative to Larmor radius; B_0 in T, m_i in kg, T_e in eV, R in m"""
+    """machine radius relative to Larmor radius; B_0 in T, m_i in kg, T_e in
+    eV, R in m"""
     return R / rho_s(B_0, m_i, T_e)
 
 @task
 def epsilon_D ( n_0, B_0, m_i, **kwargs) :
-    """Square Debye length relative to Larmor radius; n_0 in 1e19m^-3, B_0 in T, m_i in kg"""
+    """Square Debye length relative to Larmor radius; n_0 in 1e19m^-3, B_0 in
+    T, m_i in kg"""
     return cte.epsilon_0/n_0/1e19/m_i*B_0**2
 
 # dependent numerical variables
@@ -139,7 +145,8 @@ def viscosity_e( n_0, T_e, B_0, **kwargs) :
 
 @task
 def viscosity_i( n_0, T_i, B_0, m_i, **kwargs) :
-    """ parallel ion viscosity: 0.69/resistivity(n_0, T_i, B_0)*np.sqrt( np.abs(mu(m_i))"""
+    """ parallel ion viscosity: 0.69/resistivity(n_0, T_i, B_0)*np.sqrt(
+    np.abs(mu(m_i))"""
     return 0.96/np.sqrt( m_i)/cte.e**3/10* 12*np.pi**(3/2)*\
             cte.epsilon_0**2 * B_0 * (T_i*cte.eV)**(3/2) /(n_0*1e19)
 
@@ -155,7 +162,8 @@ def aspectratio( a, R, **kwargs) :
     return R/a
 @task
 def a_0( B_0, m_i, T_e, a, **kwargs) :
-    """ machine minor radius relative to Larmor radius; B_0 in T, m_i in kg, T_e in eV, a in m"""
+    """ machine minor radius relative to Larmor radius; B_0 in T, m_i in kg,
+    T_e in eV, a in m"""
     return R_0(B_0, m_i, T_e, a)
 
 @task
@@ -232,21 +240,24 @@ def numerical2physical_feltor( numerical, physical, verbose = False):
     numerical parameters:
 
     numerical (dict) : "epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"
-    physical  (dict) : "R", "B_0", "T_e", "T_i", "n_0", "m_i"
-    verbose   (bool) : if True print information to output
+    physical  (dict) : "R", "B_0", "T_e", "T_i", "n_0", "m_i" verbose   (bool)
+    : if True print information to output
 
-    We have R in m, B_0 in T, T_e in eV, T_i in eV, n_0 in 1e19m^{-3} and m_i in kg
+    We have R in m, B_0 in T, T_e in eV, T_i in eV, n_0 in 1e19m^{-3} and m_i
+    in kg
 
     The numerical parameters can be computed from the physical ones using
-    parameters2quantities( physical, ["epsilon_D", "resistivity", "mu", "tau", "R_0", "beta"])
+    parameters2quantities( physical, ["epsilon_D", "resistivity", "mu", "tau",
+    "R_0", "beta"])
 
     The inverse can be computed if
      - All 6 numerical parameters are present
      - "mu" can be absent from numerical if "m_i" is present in physical
      - "epsilon_D" can be absent from numerical if "R" is present in physical
-     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are present in physical
-    On return numerical will contain all numerical and physical will contain all physical parameters
-    numerical and physical can be the same dictionary
+     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are
+       present in physical On return numerical will contain all numerical and
+       physical will contain all physical parameters numerical and physical can
+       be the same dictionary
 
     """
 
@@ -256,7 +267,7 @@ def numerical2physical_feltor( numerical, physical, verbose = False):
         numerical["mu"] = -cte.m_e/physical["m_i"]
 
     if ( ("epsilon_D" in numerical) and (numerical["epsilon_D"] != 0) ) :
-        if (not("beta" in numerical) or (numerical["beta"] == 0)):
+        if ("beta" not in numerical or (numerical["beta"] == 0)):
             raise ValueError("beta must be present if epsilon_D is")
         def to_invert0( x,
                        for_e_D,for_mu, for_beta, for_eta) :
@@ -277,7 +288,8 @@ def numerical2physical_feltor( numerical, physical, verbose = False):
         if verbose:
             print(x, infodict, ier, mesg)
         physical["T_e"], physical["n_0"], physical["B_0"] = x
-        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"], physical["m_i"], physical["T_e"])
+        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"],
+        physical["m_i"], physical["T_e"])
         if ier != 1:
             raise ValueError( mesg)
 
@@ -295,7 +307,8 @@ def numerical2physical_feltor( numerical, physical, verbose = False):
         x, infodict, ier, mesg\
         = opt.fsolve( to_invert1, [1,1,1],args=(
             physical["R"],numerical["mu"],
-            numerical["beta"],numerical["resistivity"],numerical["R_0"]), full_output = True)
+            numerical["beta"],numerical["resistivity"],numerical["R_0"]),
+            full_output = True)
         if verbose:
             print(x, infodict, ier, mesg)
         physical["T_e"], physical["n_0"], physical["B_0"] = x
@@ -307,9 +320,10 @@ def numerical2physical_feltor( numerical, physical, verbose = False):
     else :
         if verbose :
             print( "Invert for given R and B_0")
-        if ((not "R" in physical) or (physical["R"] == 0) or
-            (not "B_0" in physical) or (physical["B_0"] == 0)):
-            raise ValueError ( "B_0 and R must be present in physical and be different from zero")
+        if (("R" not in physical) or (physical["R"] == 0) or
+            ("B_0" not in physical) or (physical["B_0"] == 0)):
+            raise ValueError (
+            "B_0 and R must be present in physical and be different from zero")
         def to_invert2( x, B_0, R,
                   for_mu, for_eta, for_R_0) :
             T_e, n_0 = x
@@ -341,21 +355,23 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
     numerical parameters:
 
     numerical (dict) : "epsilon_D", "collisionality", "mue", "R_0", "beta"
-    physical  (dict) : "R", "B_0", "T_e", "n_0", "m_i"
-    verbose   (bool) : if True print information to output
+    physical  (dict) : "R", "B_0", "T_e", "n_0", "m_i" verbose   (bool) : if
+    True print information to output
 
     We have R in m, B_0 in T, T_e in eV, n_0 in 1e19m^{-3} and m_i in kg
 
     The numerical parameters can be computed from the physical ones using
-    parameters2quantities( physical, ["epsilon_D", "collisionality", "mue", "R_0", "beta"])
+    parameters2quantities( physical, ["epsilon_D", "collisionality", "mue",
+    "R_0", "beta"])
 
     The inverse can be computed if
      - All 5 numerical parameters are present
      - "mue" can be absent from numerical if "m_i" is present in physical
      - "epsilon_D" can be absent from numerical if "R" is present in physical
-     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are present in physical
-    On return numerical will contain all numerical and physical will contain all physical parameters
-    numerical and physical can be the same dictionary
+     - "epsilon_D" and "beta" can be absent from numerical if "R" and "B_0" are
+       present in physical On return numerical will contain all numerical and
+       physical will contain all physical parameters numerical and physical can
+       be the same dictionary
 
     """
 
@@ -365,7 +381,7 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
         numerical["mue"] = cte.m_e/physical["m_i"]
 
     if ( ("epsilon_D" in numerical) and (numerical["epsilon_D"] != 0) ) :
-        if (not("beta" in numerical) or (numerical["beta"] == 0)):
+        if ("beta" not in numerical or (numerical["beta"] == 0)):
             raise ValueError("beta must be present if epsilon_D is")
         def to_invert0( x,
                        for_e_D,for_mue, for_beta, for_nu) :
@@ -385,7 +401,8 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
         if verbose:
             print(x, infodict, ier, mesg)
         physical["T_e"], physical["n_0"], physical["B_0"] = x
-        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"], physical["m_i"], physical["T_e"])
+        physical["R"] = numerical["R_0"]*rho_s( physical["B_0"],
+        physical["m_i"], physical["T_e"])
         if ier != 1:
             raise ValueError( mesg)
 
@@ -403,7 +420,8 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
         x, infodict, ier, mesg\
         = opt.fsolve( to_invert1, [1,1,1],args=(
             physical["R"],numerical["mue"],
-            numerical["beta"],numerical["collisionality"],numerical["R_0"]), full_output = True)
+            numerical["beta"],numerical["collisionality"],numerical["R_0"]),
+            full_output = True)
         if verbose:
             print(x, infodict, ier, mesg)
         physical["T_e"], physical["n_0"], physical["B_0"] = x
@@ -415,9 +433,10 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
     else :
         if verbose :
             print( "Invert for given R and B_0")
-        if ((not "R" in physical) or (physical["R"] == 0) or
-            (not "B_0" in physical) or (physical["B_0"] == 0)):
-            raise ValueError ( "B_0 and R must be present in physical and be different from zero")
+        if (("R" not in physical) or (physical["R"] == 0) or
+            ("B_0" not in physical) or (physical["B_0"] == 0)):
+            raise ValueError (
+            "B_0 and R must be present in physical and be different from zero")
         def to_invert2( x, B_0, R,
                   for_mue, for_nu, for_R_0) :
             T_e, n_0 = x
@@ -444,7 +463,8 @@ def numerical2physical_thermal( numerical, physical, verbose = False):
 
 # Should this have a code parameter?
 def numerical2physical( numerical, physical, verbose = False):
-    """ Recognize numerical parameters and call correct function *_feltor or *_thermal"""
+    """ Recognize numerical parameters and call correct function *_feltor or
+    *_thermal"""
     if "resistivity" in numerical:
         numerical2physical_feltor( numerical, physical, verbose)
     elif "collisionality" in numerical:
@@ -468,7 +488,7 @@ def parameters2quantity( parameters, quantity) :
         quantity function to call
     quantity (string): the name of the function to call
     """
-    if quantity in parameters.keys() :
+    if quantity in parameters :
         return  parameters[quantity]
     else :
         return tasks[ quantity]( **parameters)
@@ -483,10 +503,8 @@ def parameters2quantities( parameters, quantities) :
         quantity functions to call
     quantities (list/collection of strings): the names of the functions to call
     """
-    myList = []
-    for quantity in quantities:
-        myList.append( parameters2quantity( parameters, quantity))
-    return myList
+    return [parameters2quantity( parameters, quantity) for quantity in
+        quantities]
 
 def load_calibration_default( code = "feltor"):
     """ generate default feltor input parameters for calibration
