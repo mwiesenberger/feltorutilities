@@ -41,6 +41,7 @@ Tracker = "https://github.com/mwiesenberger/feltorutilities/issues"
 [project.optional-dependencies]
 # with this we can install
 # pip install -e .[test]
+# Note that github may need tests/__init__.py in flat project structure
 test = [
   "pytest",
 ]
