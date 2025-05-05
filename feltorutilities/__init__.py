@@ -789,12 +789,205 @@ def load_calibration_default(code="feltor"):
     }
     if code == "feltor":
         return inputfile
-    if code == "thermal":
-        inputfile["boundary"]["wall"]["nwall"] = [0.2, 0.2]
-        inputfile["boundary"]["wall"]["twall"] = 0.1
-        inputfile["boundary"]["wall"]["qwall"] = 0.0
-        inputfile["boundary"]["bc"]["temperature"] = (["NEU", "NEU"],)
-        inputfile["boundary"]["bc"]["heat-flux"] = (["NEU", "NEU"],)
+    #if code == "thermal":
+    del inputfile["advection"]
+    del inputfile["init"]
+    del inputfile["source"]
+    inputfile["boundary"]["wall"]["nwall"] = [0.1, 0.1]
+    inputfile["boundary"]["wall"]["twall"] = 1
+    inputfile["boundary"]["wall"]["qwall"] = 0.0
+    inputfile["regularization"] = {
+        "order" : 2,
+        "direction" : "forward",
+        "nu_perp" : [1e-4, 1e-4, 1e-4, 1e-4, 1e-4, 1e-4],
+        "nu_parallel" : [500, 500, 500, 500, 500, 500],
+    }
+    inputfile["physical"] = {
+        "mue": 0.000272121,
+        "epsilon_D": 4.1458919332419e-05,
+        "beta": 1e-4,
+        "collisionality": 1e-4,
+        "qlandau" : 3
+    }
+    inputfile["species"] = [
+        {
+            "name" : "e",
+            "mu" : 2.72121e-4,
+            "z" : -1,
+            "kappa" : 3.2,
+            "pi" : 0.73,
+            "source":
+            {
+                "density" :
+                {
+                    "minne": 0.2,
+                    "minrate": 1.0,
+                    "minalpha": 0.1,
+                    "type": "influx-quasineutral",
+                    "rate" : 1e-4
+                },
+                "pperp": { "type" : "zero" },
+                "ppara": { "type" : "zero" }
+            },
+            "init":
+            {
+                "type": "fields",
+                "density": {
+                    "type": "quasineutral",
+                    "invert" : "none"
+                },
+                "pperp" :
+                {
+                    "type": "profile",
+                    "ntilde": {
+                        "type": "turbulence",
+                        "amplitude": 1e-4,
+                        "revolutions": 1,
+                        "parallel": "gaussian",
+                        "sigma_z": 0.5,
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 4.0,
+                        "nsep": 1.0,
+                        "background": 0.2,
+                    },
+                    "damping": {
+                        "type": "alignedPFR",
+                        "alpha": [0.1, 0.04],
+                        "boundary": [1.14, 0.96],
+                    },
+                },
+                "ppara" :
+                {
+                    "type": "profile",
+                    "ntilde": {
+                        "type": "turbulence",
+                        "amplitude": 1e-4,
+                        "revolutions": 1,
+                        "parallel": "gaussian",
+                        "sigma_z": 0.5,
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 4.0,
+                        "nsep": 1.0,
+                        "background": 0.2,
+                    },
+                    "damping": {
+                        "type": "alignedPFR",
+                        "alpha": [0.1, 0.04],
+                        "boundary": [1.14, 0.96],
+                    },
+                },
+                "velocity": {"type": "quasineutral"},
+                "qperp": {"type": "zero"},
+                "qpara": {"type": "zero"},
+            },
+
+        },
+        {
+            "name" : "i",
+            "mu" : 1.0,
+            "z" : +1,
+            "kappa" : 3.9,
+            "pi" : 0.96,
+            "source": {
+                "density":
+                {
+                    "minne": 0.2,
+                    "minrate": 1.0,
+                    "minalpha": 0.1,
+                    "type": "influx",
+                    "rate": 1e-4,
+                    "ntilde": {
+                        "type": "zero",
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 1.0,
+                        "nsep": 0.0,
+                        "background": 0.0,
+                    },
+                    "damping": {"type": "alignedX", "alpha": 0.2, "boundary": 0.55},
+                },
+                "pperp": { "type" : "zero" },
+                "ppara": { "type" : "zero" }
+            },
+            "init": {
+                "type": "fields",
+                "density": {
+                    "type": "profile",
+                    "invert" : "none",
+                    "ntilde": {
+                        "type": "turbulence",
+                        "amplitude": 1e-4,
+                        "revolutions": 1,
+                        "parallel": "gaussian",
+                        "sigma_z": 0.5,
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 4.0,
+                        "nsep": 1.0,
+                        "background": 0.2,
+                    },
+                    "damping": {
+                        "type": "alignedPFR",
+                        "alpha": [0.1, 0.04],
+                        "boundary": [1.14, 0.96],
+                    },
+                },
+                "pperp" :
+                {
+                    "type": "profile",
+                    "ntilde": {
+                        "type": "turbulence",
+                        "amplitude": 1e-4,
+                        "revolutions": 1,
+                        "parallel": "gaussian",
+                        "sigma_z": 0.5,
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 4.0,
+                        "nsep": 1.0,
+                        "background": 0.2,
+                    },
+                    "damping": {
+                        "type": "alignedPFR",
+                        "alpha": [0.1, 0.04],
+                        "boundary": [1.14, 0.96],
+                    },
+                },
+                "ppara" :
+                {
+                    "type": "profile",
+                    "ntilde": {
+                        "type": "turbulence",
+                        "amplitude": 1e-4,
+                        "revolutions": 1,
+                        "parallel": "gaussian",
+                        "sigma_z": 0.5,
+                    },
+                    "profile": {
+                        "type": "aligned",
+                        "npeak": 4.0,
+                        "nsep": 1.0,
+                        "background": 0.2,
+                    },
+                    "damping": {
+                        "type": "alignedPFR",
+                        "alpha": [0.1, 0.04],
+                        "boundary": [1.14, 0.96],
+                    },
+                },
+                "velocity": {"type": "linear_cs"},
+                "qperp" : { "type" : "zero"},
+                "qpara" : { "type" : "zero"},
+            },
+        }
+    ]
     return inputfile
 
 
