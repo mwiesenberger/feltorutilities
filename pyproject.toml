@@ -59,7 +59,7 @@ jupyter = [
     "numpy>=2.2.3",
     "scipy>=1.15.2",
     "simplesimdb>=1.1.1",
-    "magneticfielddb @ git+https://github.com/feltor-dev/magneticfielddb"
+    "magneticfielddb>=0.1.1"
 ]
 
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
@@ -92,6 +92,3 @@ select = [
     "RUF", # ruff specific
     "NPY", # NumPy specific
 ]
-
-[tool.uv.sources]
-magneticfielddb = { git = "https://github.com/feltor-dev/magneticfielddb" }
