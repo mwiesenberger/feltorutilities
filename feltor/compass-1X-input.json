@@ -1,0 +1,226 @@
+{
+    "magnetic_field": {
+        "curvmode": "toroidal",
+        "input": "params",
+        "params": {
+            "A": 0.0,
+            "R_0": 545.0,
+            "PP": 1.0,
+            "PI": 1.0,
+            "c": [
+                0.07259788857252009,
+                -0.14926096478076947,
+                -0.03140799256766093,
+                -0.002329827747851956,
+                0.05810316390819113,
+                -0.07923486344238229,
+                -0.003333785443289367,
+                0.033813030145633506,
+                0.37706830466684815,
+                -0.175205624836284,
+                -0.05132633182912536,
+                0.006114909427018782
+            ],
+            "equilibrium": "solovev",
+            "description": "standardX",
+            "inverseaspectratio": 0.3211009174311926,
+            "triangularity": 0.3,
+            "elongation": 1.44,
+            "comment": "Mathematica; eye fit of Fig. 3 in R Panek et al 2015 Plasma Phys. Control. Fusion 58 014015"
+        }
+    },
+    "grid": {
+        "n": 3,
+        "Nx": 192,
+        "Ny": 336,
+        "Nz": 32,
+        "scaleR": [
+            1.45,
+            1.25
+        ],
+        "scaleZ": [
+            2.475,
+            2.25
+        ]
+    },
+    "boundary": {
+        "wall": {
+            "type": "sol_pfr",
+            "boundary": [
+                1.15,
+                0.97
+            ],
+            "alpha": [
+                0.1,
+                0.1
+            ],
+            "penalization": 0.01,
+            "modify-B": true,
+            "penalize-rhs": true,
+            "nwall": 0.2,
+            "uwall": 0
+        },
+        "sheath": {
+            "type": "insulating",
+            "boundary": 0.21875,
+            "alpha": 0.15625,
+            "penalization": 5.0,
+            "penalize-rhs": true,
+            "coordinate": "s",
+            "max_angle": 4
+        },
+        "bc": {
+            "density": [
+                "NEU",
+                "NEU"
+            ],
+            "velocity": [
+                "NEU",
+                "NEU"
+            ],
+            "potential": [
+                "DIR",
+                "DIR"
+            ],
+            "aparallel": [
+                "NEU",
+                "NEU"
+            ]
+        }
+    },
+    "init": {
+        "type": "fields",
+        "density": {
+            "type": "ne",
+            "ntilde": {
+                "type": "turbulence",
+                "amplitude": 0.0001,
+                "revolutions": 1,
+                "parallel": "gaussian",
+                "sigma_z": 0.5
+            },
+            "profile": {
+                "type": "aligned",
+                "npeak": 8.5,
+                "nsep": 1.0,
+                "background": 0.2
+            },
+            "damping": {
+                "type": "alignedPFR",
+                "boundary": [
+                    1.15,
+                    0.97
+                ],
+                "alpha": [
+                    0.1,
+                    0.03
+                ]
+            }
+        },
+        "velocity": {
+            "type": "ui",
+            "profile": "linear_cs"
+        },
+        "potential": {
+            "type": "zero_pol"
+        },
+        "aparallel": {
+            "type": "zero"
+        }
+    },
+    "source": {
+        "minne": 0.2,
+        "minrate": 1.0,
+        "minalpha": 0.05,
+        "type": "influx",
+        "rate": 0.0001,
+        "profile": {
+            "type": "aligned",
+            "npeak": 1.0,
+            "nsep": 0.11764705882352941,
+            "background": 0.0
+        },
+        "ntilde": {
+            "type": "zero"
+        },
+        "damping": {
+            "type": "alignedX",
+            "alpha": 0.2,
+            "boundary": 0.55
+        }
+    },
+    "advection": {
+        "slope-limiter": "none"
+    },
+    "elliptic": {
+        "stages": 5,
+        "eps_pol": [
+            1e-06,
+            0.5,
+            0.5,
+            0.5,
+            0.5
+        ],
+        "eps_gamma": 1e-08,
+        "eps_ampere": 1e-08,
+        "direction": "forward",
+        "jumpfactor": 1
+    },
+    "FCI": {
+        "refine": [
+            12,
+            12
+        ],
+        "rk4eps": 1e-06,
+        "periodify": false,
+        "bc": "along_field",
+        "interpolation-method": "linear-nearest"
+    },
+    "flags": [],
+    "regularization": {
+        "order": 2,
+        "direction": "centered",
+        "nu_perp_n": 0.001,
+        "nu_perp_u": 0.001,
+        "nu_parallel_n": 1000.0000000000001
+    },
+    "physical": {
+        "mu": -0.0002724437107605002,
+        "tau": 1.0,
+        "beta": 0.00010000000000000002,
+        "resistivity": 0.0001,
+        "epsilon_D": 4.1458919293009224e-05,
+        "viscosity": "value",
+        "nu_parallel": [
+            3700.0,
+            114.28646517411559
+        ]
+    },
+    "timestepper": {
+        "tableau": "Bogacki-Shampine-4-2-3",
+        "type": "adaptive",
+        "rtol": 1e-05,
+        "atol": 1e-06,
+        "output-mode": "deltaT",
+        "deltaT": 193.03216938992145,
+        "reject-limit": 10
+    },
+    "output": {
+        "type": "netcdf",
+        "itstp": 100,
+        "maxout": 100,
+        "compression": [
+            2,
+            2
+        ],
+        "equations": [
+            "Basic",
+            "Mass-conserv",
+            "Energy-theorem",
+            "Toroidal-momentum",
+            "Parallel-momentum",
+            "Zonal-Flow-Energy",
+            "COCE"
+        ]
+    }
+}
