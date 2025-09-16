@@ -2,7 +2,13 @@ import json
 
 import simplesimdb as simplesim
 
-with open( "compass_1X-input.json", "r" ) as f:
+###############################################################################
+# Remember to create a data directory (we usually create a symbolic link "data"
+# to the place the simulation data should be stored on the cluster):
+# ln -s path/to/storage data
+###############################################################################
+
+with open( "compass-1X-input.json", "r" ) as f:
     inputfile = json.load(f)
 
 m = simplesim.Manager( directory="data", executable="./submit_job.sh", filetype="nc")
